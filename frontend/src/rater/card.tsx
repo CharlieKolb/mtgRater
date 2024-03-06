@@ -1,34 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import SetData from './setData';
 
 export type CardProps = {
     setCode: string; // e.g. "neo", "dmu", "bro", not "BRO"
-    setNumber: string; // e.g. "1", "100", not "01"
     language: string; // e.g. "en", "jp"
 }
 
-function makeUrl({ setCode, setNumber, language }: Readonly<CardProps>) {
-    return `https://api.scryfall.com/cards/${setCode}/${setNumber}/${language}`;
+function makeUrl({ setCode, language }: Readonly<CardProps>, cardNumber: number) {
+    return `https://api.scryfall.com/cards/${setCode}/${cardNumber + 1}/${language}`;
 }
 
-export class Card extends React.Component<CardProps, { source: string }> {
-    constructor(props: CardProps) {
-        super(props);
-        this.state = {
-            source: "https://cards.scryfall.io/large/front/5/a/5a5841fa-4f30-495a-b840-3ef5a2af8fad.jpg", // todo: replace with cardback
-        };
+export default function Card(props: CardProps) {
+    const [cardNumber, setCardNumber] = useState(0);
+    const [source, setSource] = useState("https://backs.scryfall.io/large/d/3/d3335a33-505d-422a-a03c-5dd9b1388046.jpg?1665006244")
 
-    }
-    async componentDidMount() {
-        const response = await fetch(makeUrl(this.props));
-        const card_json = await response.json();
-        this.setState({
-            source: card_json['image_uris']['normal'],
-        });
+    function handleNextCard() {
+        setCardNumber((SetData[props.setCode].length + cardNumber + 1) % SetData[props.setCode].length);
     }
 
-    render() {
-        return (
-            <img className="card" src={this.state.source} alt="Card Not Found" />
-        )
+    function handlePreviousCard() {
+        setCardNumber((SetData[props.setCode].length + cardNumber - 1) % SetData[props.setCode].length);
     }
+
+    useEffect(() => {
+        let ignore = false;
+
+        async function resolveImage() {
+            const url = makeUrl(props, cardNumber);
+            console.log(`url is ${url}`);
+            const response = await fetch(url);
+            const responseJson = await response.json();
+            if (!ignore) {
+                setSource(responseJson['image_uris']['normal'])
+            }
+        }
+
+        resolveImage();
+        return () => {
+            ignore = true;
+        }
+    }, [cardNumber])
+
+    return (
+        <div>
+            <img className="card" src={source} />
+            <div className="rows">
+                <button onClick={handlePreviousCard}>Previous</button>
+                <button onClick={handleNextCard}>Next</button>
+            </div>
+        </div>
+    )
 }
