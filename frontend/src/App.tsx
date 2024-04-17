@@ -1,7 +1,7 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Card from './rater/card';
+import Card from './rater/SetRater';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';

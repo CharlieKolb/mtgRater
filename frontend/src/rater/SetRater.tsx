@@ -26,6 +26,7 @@ export default function Card(props: CardProps) {
     const [enableDistribution, setEnableDistribution] = useState<boolean>(false);
     const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
 
+
     function commitCardRating(num: number, rating: number | null): Promise<Distribution> {
         return MockBackend.registerRating(props.setCode, num, rating);
     }
@@ -52,12 +53,15 @@ export default function Card(props: CardProps) {
         setCardNumber(newNumber);
     }
 
+    const getNextCardNumber = () => ((SetData[props.setCode].length + cardNumber + 1) % SetData[props.setCode].length);
+    const getPreviousCardNumber = () => ((SetData[props.setCode].length + cardNumber - 1) % SetData[props.setCode].length);
+
     function handleNextCard() {
-        handleCardChanged((SetData[props.setCode].length + cardNumber + 1) % SetData[props.setCode].length);
+        handleCardChanged(getNextCardNumber());
     }
 
     function handlePreviousCard() {
-        handleCardChanged((SetData[props.setCode].length + cardNumber - 1) % SetData[props.setCode].length);
+        handleCardChanged(getPreviousCardNumber());
     }
 
     function handleRating(value: string | number | null) {
@@ -84,6 +88,10 @@ export default function Card(props: CardProps) {
         setRatingValue(value)
     }
 
+    let prevImage = new Image();
+    let nextImage = new Image();
+
+
     // change image and fetch ratings
     useEffect(() => {
         let ignore = false;
@@ -95,16 +103,20 @@ export default function Card(props: CardProps) {
         });
 
 
-        async function resolveImage() {
-            const url = makeUrl(props, cardNumber);
-            console.log(`url is ${url}`);
+        const url = makeUrl(props, cardNumber);
+        const prevUrl = makeUrl(props, getPreviousCardNumber());
+        const nextUrl = makeUrl(props, getNextCardNumber());
+        async function resolveImage(url: string): Promise<string> {
             const response = await fetch(url);
             const responseJson = await response.json();
             if (!ignore) {
-                setSource(responseJson['image_uris']['normal'])
+                return responseJson['image_uris']['normal']
             }
+            return Promise.reject("Outdated");
         }
-        resolveImage();
+        resolveImage(url).then(setSource);
+        resolveImage(prevUrl).then(s => prevImage.src = s);
+        resolveImage(nextUrl).then(s => nextImage.src = s);
 
         return () => {
             ignore = true;
