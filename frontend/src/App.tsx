@@ -12,7 +12,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <Card setCode='dmu' language='en' />
+        <Card setCode='otj' language='en' />
       </header>
     </div>
   );
