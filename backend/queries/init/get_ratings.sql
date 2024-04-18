@@ -1,3 +1,3 @@
 SELECT *
 FROM ratings
-WHERE set_code = $1
+WHERE collection_id = $1
