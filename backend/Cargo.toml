@@ -7,9 +7,13 @@ edition = "2021"
 
 [dependencies]
 sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls" , "postgres" ] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["full", "macros", "rt-multi-thread"] }
 anyhow = "1.0"
 serde = "1"
 serde_json = "1"
 reqwest = "0.11"
 openssl = { version = "0.10", features = ["vendored"] }
+maplit = "1.0.2"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+axum = "0.7.5"

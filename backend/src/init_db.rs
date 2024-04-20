@@ -97,9 +97,10 @@ pub async fn generate_card_queries() -> Result<Vec<String>, anyhow::Error> {
             .into_iter()
             .map(|x| {
                 format!(
-                    "('{}', '{}')",
-                    name,
-                    (x.set + x.collector_number.as_str()).replace("'", "''")
+                    "('{}', '{}', '{}')",
+                    name.replace("'", "''"),
+                    x.set.replace("'", "''"),
+                    x.collector_number.replace("'", "''")
                 )
             })
             .collect::<Vec<String>>()
@@ -117,7 +118,7 @@ pub async fn register_supported_sets(pool: &PgPool) -> Result<(), Error> {
     for query in generate_card_queries().await? {
         sqlx::query(
             format!(
-                "INSERT INTO ratings(collection_id, card_name)
+                "INSERT INTO ratings(collection_id, set_id, card_code)
     VALUES {} ON CONFLICT DO NOTHING",
                 query
             )
