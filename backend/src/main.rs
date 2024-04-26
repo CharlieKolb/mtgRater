@@ -1,7 +1,14 @@
+use std::{collections::HashMap, fs};
+
 use sqlx::postgres::PgPoolOptions;
 
+mod collections;
 mod db;
 mod server;
+
+struct ServerData {
+    sets: HashMap<String, collections::Collection>,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {

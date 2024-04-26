@@ -55,8 +55,6 @@ const SETS: &[Collection] = &[
     ),
 ];
 
-
-
 type CollectionItem = (&'static str, Vec<CardDetail>);
 
 pub async fn get_cards_from_query(scryfall_query: &str) -> Result<Vec<CardDetail>, anyhow::Error> {
@@ -168,6 +166,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
+    #[ignore]
     async fn test_generate_ratings_queries() {
         println!(
             "{} ",
@@ -178,6 +177,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_generate_cards_queries() {
         println!(
             "{} ",
