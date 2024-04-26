@@ -10,20 +10,3 @@ CREATE TABLE IF NOT EXISTS public.ratings
     rated_5 integer NOT NULL default 0,
     CONSTRAINT ratings_pkey PRIMARY KEY (collection_id, set_id, card_code)
 )
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.ratings
-    OWNER to postgres;
-
-
-CREATE TABLE IF NOT EXISTS public.cards
-(
-    set_id character varying(6) NOT NULL,
-    card_code character varying(6) NOT NULL,
-    card_name character varying(126),
-    CONSTRAINT cards_pkey PRIMARY KEY (set_id, card_code)
-)
-
-ALTER TABLE IF EXISTS public.ratings
-    OWNER to postgres;
