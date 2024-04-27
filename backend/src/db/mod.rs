@@ -1,2 +1,2 @@
-mod init_db;
-mod lib;
+pub mod init_db;
+pub mod lib;
