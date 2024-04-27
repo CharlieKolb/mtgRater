@@ -146,7 +146,13 @@ export default function Card(props: CardProps) {
                     <icons.ArrowBackIos />
                 </ui.IconButton>
                 <ui.Stack alignItems="center">
-                    {source.match(cardNumber.toString()) ? <img className="card" alt="loading..." src={source} /> : <ui.Skeleton variant="rectangular" width={635 * 0.5} height={889 * 0.5} />}
+                    <ui.Container sx={{ "display": "inline-block" }}>
+                        {source.match(cardNumber.toString()) ?
+                            <img className="card" alt="loading..." src={source} /> :
+                            <ui.Skeleton variant="rectangular">
+                                <img className="card" alt="loading..." src={source} />
+                            </ui.Skeleton>}
+                    </ui.Container>
                     {enableDistribution ?
                         <ui.Stack
                             direction="row"
