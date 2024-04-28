@@ -31,6 +31,7 @@ pub struct Sets {
     pub sets: Vec<SetDetail>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Format {
     Set(String),
     Draft(String, String),
@@ -82,18 +83,16 @@ pub async fn resolve_format(draft: &Format) -> Result<FormatItem, Error> {
 }
 
 pub fn parse_formats() -> Result<HashMap<String, Format>, anyhow::Error> {
-    Ok(serde_json::from_str::<Vec<FormatJson>>(
-        std::fs::read_to_string("resources/formats.json")?.as_str(),
-    )?
-    .into_iter()
-    .map(move |x| match x {
-        FormatJson::Set(key) => (key.clone(), Format::Set(key)),
-        FormatJson::Draft((key, val)) => (key.clone(), Format::Draft(key, val)),
-    })
-    .collect())
+    Ok(
+        serde_json::from_str::<Vec<FormatJson>>(include_str!("../resources/formats.json"))?
+            .into_iter()
+            .map(move |x| match x {
+                FormatJson::Set(key) => (key.clone(), Format::Set(key)),
+                FormatJson::Draft((key, val)) => (key.clone(), Format::Draft(key, val)),
+            })
+            .collect(),
+    )
 }
-
-
 
 #[cfg(test)]
 mod tests {

@@ -1,6 +1,8 @@
 use sqlx::{Pool, Postgres};
 
-enum RatingsValue {
+use crate::util::Format;
+
+pub enum RatingsValue {
     Rated1,
     Rated2,
     Rated3,
@@ -27,13 +29,24 @@ enum RatingsColumn {
     Rating(RatingsValue),
 }
 
-pub fn increment_rating(pool: Pool<Postgres>, rating: RatingsValue) {
-    // sqlx::query!(
-    //     "UPDATE ratings
-    // SET $1 = $1 + 1
-    // WHERE collection_id = $2 AND card_id = $3",
-    //     rating.to_sql_column(),
-    //     collection_id,
-    //     card_id,
-    // )
+pub async fn increment_rating(
+    pool: &Pool<Postgres>,
+    rating: RatingsValue,
+    format_id: &String,
+    card_id: &String,
+    set_id: &String,
+) -> Result<(), anyhow::Error> {
+    sqlx::query(
+        "UPDATE ratings
+    SET $1 = $1 + 1
+    WHERE collection_id = $2 AND card_id = $3 AND set_id = $4",
+    )
+    .bind(rating.to_sql_column())
+    .bind(format_id)
+    .bind(card_id)
+    .bind(set_id)
+    .execute(pool)
+    .await?;
+
+    Ok(())
 }

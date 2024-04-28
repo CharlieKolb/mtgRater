@@ -15,7 +15,7 @@ services:
     ports:
       - 5433:5433
     environment:
-      - PG_DBNAME=example
+      - PG_DBNAME=mtgRater
       - PG_HOST=db
       - PG_USER=postgres
       - PG_PASSWORD=mysecretpassword
@@ -40,9 +40,9 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=example
+      - POSTGRES_DB=mtgRater
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-    expose:
+    ports:
       - 5432
     healthcheck:
       test: [ "CMD", "pg_isready" ]
