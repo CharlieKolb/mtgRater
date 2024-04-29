@@ -9,7 +9,18 @@ use crate::{
     ServerData,
 };
 
-pub async fn generate_ratings_query(collection_item: &FormatItem) -> Result<String, anyhow::Error> {
+static MIGRATIONS: &[&str] = &[
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/db/queries/migrations/0001_ratings_up.sql"
+    )),
+    include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/db/queries/migrations/0002_cards_up.sql"
+    )),
+];
+
+async fn generate_ratings_query(collection_item: &FormatItem) -> Result<String, anyhow::Error> {
     let (name, ref cards) = collection_item;
 
     Ok(cards
@@ -26,7 +37,7 @@ pub async fn generate_ratings_query(collection_item: &FormatItem) -> Result<Stri
         .join(","))
 }
 
-pub async fn generate_cards_query(collection_item: &FormatItem) -> Result<String, anyhow::Error> {
+async fn generate_cards_query(collection_item: &FormatItem) -> Result<String, anyhow::Error> {
     let (_, ref cards) = collection_item;
 
     Ok(cards
@@ -43,7 +54,7 @@ pub async fn generate_cards_query(collection_item: &FormatItem) -> Result<String
         .join(","))
 }
 
-pub async fn register_supported_sets(pool: &PgPool, server_data: &ServerData) -> Result<(), Error> {
+async fn register_supported_sets(pool: &PgPool, server_data: &ServerData) -> Result<(), Error> {
     for collection in server_data.formats.values() {
         let item = util::resolve_format(collection).await?;
         let ratings_query: String = generate_ratings_query(&item).await?;
@@ -70,6 +81,16 @@ pub async fn register_supported_sets(pool: &PgPool, server_data: &ServerData) ->
         .execute(pool)
         .await?;
     }
+
+    Ok(())
+}
+
+pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Error> {
+    for migration in MIGRATIONS {
+        sqlx::query(migration).execute(pool).await?;
+    }
+
+    register_supported_sets(pool, server_data).await?;
 
     Ok(())
 }

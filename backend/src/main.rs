@@ -41,7 +41,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .connect(&postgres_str)
         .await?;
 
-    db::init_db::register_supported_sets(&_pool, &server_data).await?;
+    db::init_db::init_db(&_pool, &server_data).await?;
 
     let app_state = AppState {
         pool: _pool,
