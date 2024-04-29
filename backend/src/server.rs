@@ -17,9 +17,9 @@ use crate::{
 };
 
 #[derive(Clone)]
-struct AppState {
-    pool: Pool<Postgres>,
-    server_data: ServerData,
+pub struct AppState {
+    pub pool: Pool<Postgres>,
+    pub server_data: ServerData,
 }
 
 #[tokio::main]
@@ -36,11 +36,14 @@ pub async fn launch_server(pool: Pool<Postgres>, server_data: ServerData) {
 }
 
 // which calls one of these handlers
-async fn get_ratings(State(state): State<AppState>, Query(params): Query<HashMap<String, String>>) {
+pub async fn get_ratings(
+    State(state): State<AppState>,
+    Query(params): Query<HashMap<String, String>>,
+) {
 }
 
 #[derive(Deserialize)]
-struct RatingsPostExractor {
+pub struct RatingsPostExractor {
     format: String,
     card_id: String,
     set_id: String,
@@ -48,7 +51,7 @@ struct RatingsPostExractor {
 }
 
 #[derive(Serialize)]
-struct RatingsPostResponse {
+pub struct RatingsPostResponse {
     format: String,
     card_id: String,
     set_id: String,
@@ -70,7 +73,7 @@ fn parse_rating(rating_raw: &String) -> Result<RatingsValue, anyhow::Error> {
     }
 }
 
-async fn post_ratings(
+pub async fn post_ratings(
     State(state): State<AppState>,
     Query(RatingsPostExractor {
         format,

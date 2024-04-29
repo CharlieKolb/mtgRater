@@ -13,13 +13,13 @@ services:
       context: .
       target: final
     ports:
-      - 5433:5433
+      - 5432:5432
     environment:
-      - PG_DBNAME=mtgRater
+      - PG_DBNAME=postgres
       - PG_HOST=db
       - PG_USER=postgres
-      - PG_PASSWORD=mysecretpassword
-      - ADDRESS=0.0.0.0:8000
+      - PG_PASSWORD=insecure
+      - ADDRESS=0.0.0.0:5432
       - RUST_LOG=debug
 
     # The commented out section below is an example of how to define a PostgreSQL
@@ -40,7 +40,8 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=mtgRater
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
     ports:
       - 5432
