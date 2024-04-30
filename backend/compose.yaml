@@ -13,13 +13,13 @@ services:
       context: .
       target: final
     ports:
-      - 5432:5432
+      - 5433:5433
     environment:
       - PG_DBNAME=postgres
       - PG_HOST=db
       - PG_USER=postgres
       - PG_PASSWORD=insecure
-      - ADDRESS=0.0.0.0:5432
+      - ADDRESS=0.0.0.0:5433
       - RUST_LOG=debug
 
     # The commented out section below is an example of how to define a PostgreSQL

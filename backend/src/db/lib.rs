@@ -1,7 +1,15 @@
-use sqlx::{Pool, Postgres};
+use serde::Serialize;
+use sqlx::{prelude::FromRow, Pool, Postgres};
+use tracing::{debug, instrument};
 
 use crate::util::Format;
 
+static GET_RATINGS_QUERY: &str = &include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/db/queries/get_ratings.sql"
+));
+
+#[derive(Debug)]
 pub enum RatingsValue {
     Rated1,
     Rated2,
@@ -29,24 +37,53 @@ enum RatingsColumn {
     Rating(RatingsValue),
 }
 
+#[tracing::instrument]
 pub async fn increment_rating(
     pool: &Pool<Postgres>,
     rating: RatingsValue,
     format_id: &String,
-    card_id: &String,
-    set_id: &String,
+    card_code: &String,
+    set_code: &String,
 ) -> Result<(), anyhow::Error> {
     sqlx::query(
-        "UPDATE ratings
-    SET $1 = $1 + 1
-    WHERE format_id = $2 AND card_id = $3 AND set_id = $4",
+        format!(
+            "UPDATE ratings
+    SET {0} = {0} + 1
+    WHERE format_id = $2 AND card_code = $3 AND set_code = $4",
+            rating.to_sql_column()
+        )
+        .as_str(),
     )
     .bind(rating.to_sql_column())
     .bind(format_id)
-    .bind(card_id)
-    .bind(set_id)
+    .bind(card_code)
+    .bind(set_code)
     .execute(pool)
     .await?;
 
     Ok(())
+}
+
+#[derive(Debug, FromRow, Serialize)]
+pub struct SchemaRatings {
+    set_code: String,
+    card_code: String,
+    rated_1: i32,
+    rated_2: i32,
+    rated_3: i32,
+    rated_4: i32,
+    rated_5: i32,
+}
+
+pub async fn get_ratings(
+    pool: &Pool<Postgres>,
+    format_id: &String,
+) -> Result<Vec<SchemaRatings>, anyhow::Error> {
+    let results = sqlx::query_as::<_, SchemaRatings>(GET_RATINGS_QUERY)
+        .bind(format_id)
+        .fetch_all(pool)
+        .await?;
+
+    debug!("{:?}", results);
+    Ok(results)
 }

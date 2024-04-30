@@ -55,7 +55,7 @@ pub async fn get_cards_from_query(
     let mut i = 1; // pages start at one
     loop {
         let query = format!(
-            "https://api.scryfall.com/cards/search?q={}&order=set&unique=cards&page={}",
+            "https://api.scryfall.com/cards/search?q=-is%3Adigital+{}&order=set&unique=cards&page={}",
             scryfall_query, i
         );
         info!(query);
@@ -74,9 +74,9 @@ pub async fn get_cards_from_query(
 
 pub async fn resolve_format(draft: &Format) -> Result<FormatItem, Error> {
     Ok(match draft {
-        Format::Set(set_id) => (
-            set_id.clone(),
-            get_cards_from_query(&format!("s:{}", set_id)).await?,
+        Format::Set(set_code) => (
+            set_code.clone(),
+            get_cards_from_query(&format!("s:{}", set_code)).await?,
         ),
         Format::Draft(name, scryfall_query) => {
             (name.clone(), get_cards_from_query(&scryfall_query).await?)

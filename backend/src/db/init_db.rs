@@ -66,7 +66,7 @@ async fn register_supported_sets(
         let ratings_query: String = generate_ratings_query(&item).await?;
         sqlx::query(
             format!(
-                "INSERT INTO ratings(format_id, set_id, card_code)
+                "INSERT INTO ratings(format_id, set_code, card_code)
     VALUES {} ON CONFLICT DO NOTHING",
                 ratings_query
             )
@@ -78,7 +78,7 @@ async fn register_supported_sets(
         let cards_query: String = generate_cards_query(&item).await?;
         sqlx::query(
             format!(
-                "INSERT INTO cards(card_code, set_id, card_name)
+                "INSERT INTO cards(card_code, set_code, card_name)
     VALUES {} ON CONFLICT DO NOTHING",
                 cards_query
             )
