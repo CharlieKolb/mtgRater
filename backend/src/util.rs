@@ -3,6 +3,7 @@ use reqwest;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::{HashMap, HashSet};
+use tracing::info;
 
 #[derive(Hash, PartialEq, Eq, Default, Debug, Serialize, Deserialize)]
 #[serde(default)]
@@ -46,6 +47,7 @@ enum FormatJson {
 
 pub type FormatItem = (String, Vec<CardDetail>);
 
+#[tracing::instrument]
 pub async fn get_cards_from_query(
     scryfall_query: &String,
 ) -> Result<Vec<CardDetail>, anyhow::Error> {
@@ -56,7 +58,7 @@ pub async fn get_cards_from_query(
             "https://api.scryfall.com/cards/search?q={}&order=set&unique=cards&page={}",
             scryfall_query, i
         );
-        println!("{:#?}", query);
+        info!(query);
         let card_page =
             serde_json::from_str::<Cards>(reqwest::get(query).await?.text().await?.as_str())?;
         if card_page.data.len() == 0 {
@@ -102,7 +104,7 @@ mod tests {
     #[test]
     fn test_parse_collections() {
         let card_list = parse_formats().unwrap();
-        assert!(card_list.contains_key("MH2"));
+        assert!(card_list.contains_key("mh2"));
         assert!(card_list.contains_key("draft_otj"));
 
         if let Format::Draft(_, y) = &card_list["draft_otj"] {

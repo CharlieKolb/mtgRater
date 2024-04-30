@@ -9,13 +9,21 @@ mod db;
 mod server;
 mod util;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct ServerData {
     formats: HashMap<String, util::Format>,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
+    let subscriber = tracing_subscriber::fmt()
+        .with_file(true)
+        .with_line_number(true)
+        .with_thread_ids(true)
+        .with_target(false)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber)?;
+
     let server_data = ServerData {
         formats: util::parse_formats()?,
     };

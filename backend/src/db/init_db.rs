@@ -1,11 +1,14 @@
 #![allow(dead_code)]
 
+use std::collections::{HashMap, HashSet};
+
 use anyhow::Error;
 
-use sqlx::PgPool;
+use sqlx::{prelude::FromRow, PgPool, Row};
+use tracing::info;
 
 use crate::{
-    util::{self, FormatItem},
+    util::{self, Format, FormatItem},
     ServerData,
 };
 
@@ -54,13 +57,16 @@ async fn generate_cards_query(collection_item: &FormatItem) -> Result<String, an
         .join(","))
 }
 
-async fn register_supported_sets(pool: &PgPool, server_data: &ServerData) -> Result<(), Error> {
-    for collection in server_data.formats.values() {
+async fn register_supported_sets(
+    pool: &PgPool,
+    formats: &HashMap<String, Format>,
+) -> Result<(), Error> {
+    for collection in formats.values() {
         let item = util::resolve_format(collection).await?;
         let ratings_query: String = generate_ratings_query(&item).await?;
         sqlx::query(
             format!(
-                "INSERT INTO ratings(collection_id, set_id, card_code)
+                "INSERT INTO ratings(format_id, set_id, card_code)
     VALUES {} ON CONFLICT DO NOTHING",
                 ratings_query
             )
@@ -85,12 +91,37 @@ async fn register_supported_sets(pool: &PgPool, server_data: &ServerData) -> Res
     Ok(())
 }
 
+#[derive(Debug, FromRow)]
+pub struct SchemaCards {
+    format_id: String,
+}
+
 pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Error> {
     for migration in MIGRATIONS {
+        info!(migration);
         sqlx::query(migration).execute(pool).await?;
     }
 
-    register_supported_sets(pool, server_data).await?;
+    // @TODO(ckolb): This should pull from a dedicated "formats" table once we have one
+    let known_sets = sqlx::query_as::<_, SchemaCards>("SELECT DISTINCT format_id FROM ratings")
+        .fetch_all(pool)
+        .await?
+        .into_iter()
+        .map(|x| x.format_id)
+        .collect::<HashSet<_>>();
+
+    info!("{:?}", known_sets);
+
+    // @TODO(ckolb): We should have a parameter to do a non-filtered run e.g. every 24 hours to refresh missing scryfall data and changed formats
+    // This is mostly here to not spam scryfall during development, the cost to rerunning the queries on our end is negligible
+    let filtered_formats = server_data
+        .formats
+        .iter()
+        .filter(|x| !known_sets.contains(x.0))
+        .map(|(a, b)| (a.to_owned(), b.to_owned()))
+        .collect::<HashMap<String, Format>>();
+
+    register_supported_sets(pool, &filtered_formats).await?;
 
     Ok(())
 }

@@ -39,7 +39,7 @@ pub async fn increment_rating(
     sqlx::query(
         "UPDATE ratings
     SET $1 = $1 + 1
-    WHERE collection_id = $2 AND card_id = $3 AND set_id = $4",
+    WHERE format_id = $2 AND card_id = $3 AND set_id = $4",
     )
     .bind(rating.to_sql_column())
     .bind(format_id)

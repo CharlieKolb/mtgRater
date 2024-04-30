@@ -38,6 +38,8 @@ services:
     secrets:
       - db-password
     volumes:
+      # - ./db/queries/migrations/0001_ratings_up.sql:/docker-entrypoint-initdb.d/0001_ratings_up.sql
+      # - ./db/queries/migrations/0002_cards_up.sql:/docker-entrypoint-initdb.d/0002_cards_up.sql
       - db-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_HOSTNAME=db
