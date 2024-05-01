@@ -5,69 +5,89 @@ import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
 import MockBackend, { Distribution } from "../mock/backend";
+import Backend, { RatingSchema, RatingsPostRequest, Format, CardRating } from '../server/backend';
 
-export type CardProps = {
-    setCode: string; // e.g. "neo", "dmu", "bro", not "BRO"
+export type RaterProps = {
+    format: Format;
     language: string; // e.g. "en", "jp"
+    backend: Backend;
 }
+
 
 // ID to avoid stale update
 let handleCardChangedId = 1;
 let fetchDistributionId = 1;
 
-function makeUrl({ setCode, language }: Readonly<CardProps>, cardNumber: number) {
-    return `https://api.scryfall.com/cards/${setCode}/${cardNumber + 1}/${language}`;
+function makeUrl(format: Format, index: number, language: string) {
+    const { set_code, card_code } = format.ratings[index];
+
+    return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
 }
 
-export default function Card(props: CardProps) {
-    const [cardNumber, setCardNumber] = useState(0);
-    const [source, setSource] = useState("")
-    const [ratingValue, setRatingValue] = useState<number | null>(null);
-    const [enableDistribution, setEnableDistribution] = useState<boolean>(false);
+function keyFromRatingSchema(schema: RatingSchema): string {
+    return schema.set_code + schema.card_code;
+}
+
+function increment_locally(card: RatingSchema, rating: CardRating) {
+    switch (rating) {
+        case 1: card.rated_1 += 1; break;
+        case 2: card.rated_2 += 1; break;
+        case 3: card.rated_3 += 1; break;
+        case 4: card.rated_4 += 1; break;
+        case 5: card.rated_5 += 1; break;
+    }
+}
+
+export default function FormatRater({ format, language, backend }: RaterProps) {
+    const format_id = format.format_id;
+    const [index, setIndex] = useState(0);
+
+    const [imageSource, setImageSource] = useState("")
+    const [ratingValue, setRatingValue] = useState<CardRating | null>(null);
+
+    const [enableDistribution, setEnableDistribution] = useState(false);
     const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
+    const [loadingRatings, setLoadingRatings] = useState(true);
 
+    function commitCardRating(rating: CardRating): Promise<Response> {
+        if (format == null) {
+            console.log()
+        }
+        const card = format.ratings[index];
 
-    function commitCardRating(num: number, rating: number | null): Promise<Distribution> {
-        return MockBackend.registerRating(props.setCode, num, rating);
+        // We increment locally mostly to avoid showing no votes for the number the user chose just now
+        increment_locally(card, rating);
+
+        return backend.postRating({
+            cardCode: card.card_code,
+            setCode: card.set_code,
+            formatId: format_id,
+            rating,
+        });
     }
 
 
     // The existence of this function is a good sign this functionality should likely be moved out to a component that is remade here instead.
-    function handleCardChanged(newNumber: number) {
-        const updateId = ++handleCardChangedId;
-        commitCardRating(cardNumber, ratingValue); // don't care about visualizing the result since we're about to change card
+    function handleCardChanged(newIndex: number) {
+        if (ratingValue != null) {
+            commitCardRating(ratingValue); // fire and forget
+        }
 
-        setDistribution([0, 0, 0, 0, 0]);
         setEnableDistribution(false);
-        // @TODO(ckolb) we should prefetch and update all existing ratings for the user + set, it won't be a lot of data and can be optimized to 3 bits per card if need be
         setRatingValue(null);
-
-
-        MockBackend.getDistribution(props.setCode, newNumber).then(d => {
-            if (handleCardChangedId === updateId) {
-                setDistribution(d);
-            }
-        });
-
-
-        setCardNumber(newNumber);
+        setIndex(newIndex);
     }
 
-    const getNextCardNumber = () => ((SetData[props.setCode].length + cardNumber + 1) % SetData[props.setCode].length);
-    const getPreviousCardNumber = () => ((SetData[props.setCode].length + cardNumber - 1) % SetData[props.setCode].length);
-
     function handleNextCard() {
-        handleCardChanged(getNextCardNumber());
+        handleCardChanged((index + 1) % format.ratings.length);
     }
 
     function handlePreviousCard() {
-        handleCardChanged(getPreviousCardNumber());
+        handleCardChanged((index - 1) % format.ratings.length);
     }
 
     function handleRating(value: string | number | null) {
         if (value === null) {
-            console.log(`cleared rating for card ${cardNumber} in set ${props.setCode}`)
-            // this is where the backend goes
             return;
         }
         if (typeof value === "string") {
@@ -78,14 +98,14 @@ export default function Card(props: CardProps) {
             return;
         }
 
-        if (value < 1 || value > 5) {
+        if (1 <= value && value <= 5) {
+            console.log(`reporting rating ${value} for ${Object.assign({ card_code: 0, set_code: 0 }, format.ratings[index])}`)
+            setRatingValue(value as CardRating);
+        } else {
             console.error(`handleRating received out of range value ${value}`)
             return;
         }
 
-
-        console.log(`reporting rating ${value} for card ${cardNumber} in set ${props.setCode}`)
-        setRatingValue(value)
     }
 
     let prevImage = new Image();
@@ -95,17 +115,10 @@ export default function Card(props: CardProps) {
     // change image and fetch ratings
     useEffect(() => {
         let ignore = false;
-        let updateId = ++fetchDistributionId;
-        MockBackend.getDistribution(props.setCode, cardNumber).then(d => {
-            if (fetchDistributionId === updateId) {
-                setDistribution(d);
-            }
-        });
 
-
-        const url = makeUrl(props, cardNumber);
-        const prevUrl = makeUrl(props, getPreviousCardNumber());
-        const nextUrl = makeUrl(props, getNextCardNumber());
+        const url = makeUrl(format, index, language);
+        const prevUrl = makeUrl(format, (index - 1) % format.ratings.length, language);
+        const nextUrl = makeUrl(format, (index + 1) % format.ratings.length, language);
         async function resolveImage(url: string): Promise<string> {
             const response = await fetch(url);
             const responseJson = await response.json();
@@ -114,14 +127,14 @@ export default function Card(props: CardProps) {
             }
             return Promise.reject("Outdated");
         }
-        resolveImage(url).then(setSource);
+        resolveImage(url).then(setImageSource);
         resolveImage(prevUrl).then(s => prevImage.src = s);
         resolveImage(nextUrl).then(s => nextImage.src = s);
 
         return () => {
             ignore = true;
         }
-    }, [cardNumber, props])
+    }, [format, index])
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n, 0)
@@ -147,10 +160,10 @@ export default function Card(props: CardProps) {
                 </ui.IconButton>
                 <ui.Stack alignItems="center">
                     <ui.Container sx={{ "display": "inline-block" }}>
-                        {source.match(cardNumber.toString()) ?
-                            <img className="card" alt="loading..." src={source} /> :
+                        {imageSource.match(`${format.ratings[index].set_code}/${format.ratings[index].card_code}`) ?
+                            <img className="card" alt="loading..." src={imageSource} /> :
                             <ui.Skeleton variant="rectangular">
-                                <img className="card" alt="loading..." src={source} />
+                                <img className="card" alt="loading..." src={imageSource} />
                             </ui.Skeleton>}
                     </ui.Container>
                     {enableDistribution ?

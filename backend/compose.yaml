@@ -8,18 +8,33 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
+  # frontend:
+  #   build:
+  #     context: frontend
+  #     target: development
+  #   networks:
+  #     - client-side
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./frontend/src:/code/src:ro
+
   server:
     build:
-      context: .
+      # context: backend
       target: final
-    ports:
-      - 5433:5433
+      # networks:
+      #   - client-side
+      # - server-side
+    volumes:
+      - ./backend/src:/code/src
+      - backend-cache:/code/target
     environment:
       - PG_DBNAME=postgres
       - PG_HOST=db
       - PG_USER=postgres
       - PG_PASSWORD=insecure
-      - ADDRESS=0.0.0.0:5433
+      - ADDRESS=0.0.0.0:8000
       - RUST_LOG=debug
 
     # The commented out section below is an example of how to define a PostgreSQL
@@ -47,13 +62,22 @@ services:
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
     ports:
       - 5432
+    networks:
+      - server-side
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 10s
       timeout: 5s
       retries: 5
-volumes:
-  db-data:
+
 secrets:
   db-password:
-    file: db/password.txt
+    file: backend/db/password.txt
+
+networks:
+  client-side: {}
+  server-side: {}
+
+volumes:
+  backend-cache: {}
+  db-data: {}
