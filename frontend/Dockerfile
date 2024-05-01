@@ -33,4 +33,6 @@ RUN npm run build
 
 FROM nginx:1.13-alpine
 
+EXPOSE 3000
+
 COPY --from=builder /code/build /usr/share/nginx/html

@@ -14,18 +14,10 @@ export type RaterProps = {
 }
 
 
-// ID to avoid stale update
-let handleCardChangedId = 1;
-let fetchDistributionId = 1;
-
 function makeUrl(format: Format, index: number, language: string) {
     const { set_code, card_code } = format.ratings[index];
 
     return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
-}
-
-function keyFromRatingSchema(schema: RatingSchema): string {
-    return schema.set_code + schema.card_code;
 }
 
 function increment_locally(card: RatingSchema, rating: CardRating) {
@@ -48,10 +40,12 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
     const [enableDistribution, setEnableDistribution] = useState(false);
     const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
     const [loadingRatings, setLoadingRatings] = useState(true);
+    const [loadingImage, setLoadingImage] = useState(true);
 
     function commitCardRating(rating: CardRating): Promise<Response> {
-        if (format == null) {
-            console.log()
+        if (format === null) {
+            console.log("Format is not set");
+            return Promise.reject();
         }
         const card = format.ratings[index];
 
@@ -108,8 +102,6 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
 
     }
 
-    let prevImage = new Image();
-    let nextImage = new Image();
 
 
     // change image and fetch ratings
@@ -117,9 +109,10 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         let ignore = false;
 
         const url = makeUrl(format, index, language);
-        const prevUrl = makeUrl(format, (index - 1) % format.ratings.length, language);
+        const prevUrl = makeUrl(format, (index - 1 + format.ratings.length) % format.ratings.length, language);
         const nextUrl = makeUrl(format, (index + 1) % format.ratings.length, language);
         async function resolveImage(url: string): Promise<string> {
+            // console.log(`Fetching image ${url}`);
             const response = await fetch(url);
             const responseJson = await response.json();
             if (!ignore) {
@@ -127,7 +120,11 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
             }
             return Promise.reject("Outdated");
         }
-        resolveImage(url).then(setImageSource);
+        let prevImage = new Image();
+        let nextImage = new Image();
+        resolveImage(url).then((x) => {
+            setImageSource(x);
+        });
         resolveImage(prevUrl).then(s => prevImage.src = s);
         resolveImage(nextUrl).then(s => nextImage.src = s);
 
@@ -150,7 +147,6 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
             {/* <ui.Typography >{distribution[index]}</ui.Typography> */}
         </ui.Box >
     }
-
     return (
         <ui.Stack alignItems="center">
 
@@ -160,11 +156,12 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
                 </ui.IconButton>
                 <ui.Stack alignItems="center">
                     <ui.Container sx={{ "display": "inline-block" }}>
-                        {imageSource.match(`${format.ratings[index].set_code}/${format.ratings[index].card_code}`) ?
-                            <img className="card" alt="loading..." src={imageSource} /> :
+                        {loadingImage ?
                             <ui.Skeleton variant="rectangular">
                                 <img className="card" alt="loading..." src={imageSource} />
-                            </ui.Skeleton>}
+                            </ui.Skeleton> : null}
+                        <img className="card" alt="loading..." src={imageSource} onLoad={() => setLoadingImage(false)} />
+
                     </ui.Container>
                     {enableDistribution ?
                         <ui.Stack

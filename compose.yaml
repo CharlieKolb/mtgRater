@@ -8,16 +8,30 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-  # frontend:
-  #   build:
-  #     context: frontend
-  #     target: development
-  #   networks:
-  #     - client-side
-  #   ports:
-  #     - 3000:3000
-  #   volumes:
-  #     - ./frontend/src:/code/src:ro
+  proxy:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - client-side
+      - server-side
+    depends_on:
+      - server
+      - frontend
+
+  frontend:
+    build:
+      context: frontend
+      target: development
+    networks:
+      - client-side
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend/src:/code/src:ro
 
   server:
     build:

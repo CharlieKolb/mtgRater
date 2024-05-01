@@ -36,9 +36,12 @@ export default class Backend {
     }
 
     public async getRatings(formatId: string): Promise<Format> {
-        return (await fetch(`${this.server_url}/ratings?format_id=${formatId}`))
-            .json() as Promise<Format>;
+        const response = await fetch(`${this.server_url}/ratings?format_id=${formatId}`);
+        if (!response.ok) {
+            return Promise.reject("getRatings response not ok");
+        }
 
+        return await response.json() as Promise<Format>;
     }
 
     public async postRating({ formatId, rating, cardCode, setCode }: RatingsPostRequest): Promise<Response> {
