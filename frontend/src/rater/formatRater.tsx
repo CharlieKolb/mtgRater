@@ -13,6 +13,12 @@ export type RaterProps = {
     backend: Backend;
 }
 
+function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: RatingSchema): Distribution {
+    return [
+        rated_1, rated_2, rated_3, rated_4, rated_5,
+    ];
+}
+
 
 function makeUrl(format: Format, index: number, language: string) {
     const { set_code, card_code } = format.ratings[index];
@@ -20,51 +26,28 @@ function makeUrl(format: Format, index: number, language: string) {
     return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
 }
 
-function increment_locally(card: RatingSchema, rating: CardRating) {
-    switch (rating) {
-        case 1: card.rated_1 += 1; break;
-        case 2: card.rated_2 += 1; break;
-        case 3: card.rated_3 += 1; break;
-        case 4: card.rated_4 += 1; break;
-        case 5: card.rated_5 += 1; break;
-    }
-}
+
 
 export default function FormatRater({ format, language, backend }: RaterProps) {
-    const format_id = format.format_id;
+    const formatId = format.format_id;
     const [index, setIndex] = useState(0);
+    const getCurrentCard = () => format.ratings[index];
 
     const [imageSource, setImageSource] = useState("")
     const [ratingValue, setRatingValue] = useState<CardRating | null>(null);
 
     const [enableDistribution, setEnableDistribution] = useState(false);
     const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
-    const [loadingRatings, setLoadingRatings] = useState(true);
     const [loadingImage, setLoadingImage] = useState(true);
 
-    function commitCardRating(rating: CardRating): Promise<Response> {
-        if (format === null) {
-            console.log("Format is not set");
-            return Promise.reject();
-        }
-        const card = format.ratings[index];
-
-        // We increment locally mostly to avoid showing no votes for the number the user chose just now
-        increment_locally(card, rating);
-
-        return backend.postRating({
-            cardCode: card.card_code,
-            setCode: card.set_code,
-            formatId: format_id,
-            rating,
-        });
+    function increment_locally(card: RatingSchema, rating: CardRating) {
     }
 
-
-    // The existence of this function is a good sign this functionality should likely be moved out to a component that is remade here instead.
     function handleCardChanged(newIndex: number) {
-        if (ratingValue != null) {
-            commitCardRating(ratingValue); // fire and forget
+        if (!enableDistribution) {
+            // We report earlier on reveal of the distribution
+            // So if the distribution is disabled we haven't reported the current value yet 
+            reportRating();
         }
 
         setEnableDistribution(false);
@@ -77,37 +60,55 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
     }
 
     function handlePreviousCard() {
-        handleCardChanged((index - 1) % format.ratings.length);
+        handleCardChanged((index - 1 + format.ratings.length) % format.ratings.length);
     }
 
-    function handleRating(value: string | number | null) {
-        if (value === null) {
+    function reportRating() {
+        if (ratingValue === null) {
             return;
         }
-        if (typeof value === "string") {
-            value = Number.parseInt(value);
-        }
-        if (!Number.isInteger(value)) {
-            console.error(`handleRating received non-int value ${value}`)
-            return;
+        const card = getCurrentCard();
+
+        // We increment locally mostly to avoid showing no votes for the number the user chose just now
+        switch (ratingValue) {
+            case 1: card.rated_1 += 1; break;
+            case 2: card.rated_2 += 1; break;
+            case 3: card.rated_3 += 1; break;
+            case 4: card.rated_4 += 1; break;
+            case 5: card.rated_5 += 1; break;
         }
 
-        if (1 <= value && value <= 5) {
-            console.log(`reporting rating ${value} for ${Object.assign({ card_code: 0, set_code: 0 }, format.ratings[index])}`)
-            setRatingValue(value as CardRating);
-        } else {
-            console.error(`handleRating received out of range value ${value}`)
-            return;
-        }
+        setDistribution(toDistribution(card));
 
+        return backend.postRating({
+            cardCode: card.card_code,
+            setCode: card.set_code,
+            formatId,
+            rating: ratingValue,
+        });
     }
 
-
+    function handleRatingChange(v: string) {
+        switch (v) {
+            case "1": setRatingValue(1); break;
+            case "2": setRatingValue(2); break;
+            case "3": setRatingValue(3); break;
+            case "4": setRatingValue(4); break;
+            case "5": setRatingValue(5); break;
+            default: console.log(`Received unexpected rating ${v}`);
+        }
+    }
 
     // change image and fetch ratings
     useEffect(() => {
         let ignore = false;
 
+        // set distribution
+        const card = format.ratings[index];
+        console.log(`card is ${JSON.stringify(card)}`)
+        setDistribution(toDistribution(card))
+
+        // set image
         const url = makeUrl(format, index, language);
         const prevUrl = makeUrl(format, (index - 1 + format.ratings.length) % format.ratings.length, language);
         const nextUrl = makeUrl(format, (index + 1) % format.ratings.length, language);
@@ -135,7 +136,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n, 0)
-        const diameter = distribution[index] / totalVotes * 100;
+        const diameter = Math.max(2.5, (distribution[index] / totalVotes) * 75);
         const shapeStyles = { width: diameter, height: diameter };
         const shapeCircleStyles = { borderRadius: '50%' };
 
@@ -143,7 +144,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
             justifyContent="center"
             alignItems="center"
             bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"}
-            sx={{ "fontSize": Math.min(diameter - 3, 25) + "px", ...shapeStyles, ...shapeCircleStyles }}>
+            sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/ ...shapeStyles, ...shapeCircleStyles }}>
             {/* <ui.Typography >{distribution[index]}</ui.Typography> */}
         </ui.Box >
     }
@@ -181,8 +182,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
                                 <ui.RadioGroup
                                     row
                                     name="row-radio-buttons-group"
-                                    value={ratingValue}
-                                    onChange={(e, v) => handleRating(v)}
+                                    onChange={(e, v) => handleRatingChange(v)}
                                 >
                                     <ui.FormControlLabel value="1" control={<ui.Radio />} label="1" labelPlacement="bottom" />
                                     <ui.FormControlLabel value="2" control={<ui.Radio />} label="2" labelPlacement="bottom" />
@@ -198,7 +198,10 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
                     <icons.ArrowForwardIos />
                 </ui.IconButton>
             </ui.Stack >
-            <ui.Button aria-label='Reveal' hidden={enableDistribution} onClick={() => setEnableDistribution(true)}>
+            <ui.Button aria-label='Reveal' hidden={enableDistribution} onClick={() => {
+                setEnableDistribution(true);
+                reportRating();
+            }}>
                 Reveal
             </ui.Button>
         </ui.Stack >

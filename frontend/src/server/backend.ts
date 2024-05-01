@@ -45,7 +45,9 @@ export default class Backend {
     }
 
     public async postRating({ formatId, rating, cardCode, setCode }: RatingsPostRequest): Promise<Response> {
-        return fetch(`${this.server_url}/ratings/post?format_id=${formatId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}`);
+        return fetch(`${this.server_url}/ratings?format_id=${formatId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}`, {
+            method: "POST",
+        });
     }
 }
 
