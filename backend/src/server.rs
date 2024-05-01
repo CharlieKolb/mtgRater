@@ -22,19 +22,6 @@ pub struct AppState {
     pub server_data: ServerData,
 }
 
-#[tokio::main]
-pub async fn launch_server(pool: Pool<Postgres>, server_data: ServerData) {
-    let app_state = AppState { pool, server_data };
-    // build our application with a single route
-    let app = Router::new()
-        .route("/ratings", get(get_ratings).post(post_ratings))
-        .with_state(app_state);
-
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
-}
-
 #[derive(Deserialize)]
 pub struct RatingsFormatExtractor {
     format_id: String,

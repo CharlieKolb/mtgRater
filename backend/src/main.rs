@@ -1,9 +1,9 @@
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, env, fs};
 
 use axum::{routing::get, Router};
-use server::{launch_server, AppState};
+use server::AppState;
 use sqlx::postgres::{PgListener, PgPoolOptions};
-use tracing::Instrument;
+use tracing::{info, Instrument};
 
 mod db;
 mod server;
@@ -63,7 +63,9 @@ async fn main() -> Result<(), anyhow::Error> {
         )
         .with_state(app_state);
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
+    let address = env::var("ADDRESS").unwrap_or("127.0.0.1:8000".into());
+    info!("Setup finished, starting listener on {}", address);
+    let listener = tokio::net::TcpListener::bind(address).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
