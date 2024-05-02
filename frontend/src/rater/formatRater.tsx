@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import SetData from './setData';
 
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
@@ -26,14 +25,13 @@ function makeUrl(format: Format, index: number, language: string) {
     return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
 }
 
-
-
 export default function FormatRater({ format, language, backend }: RaterProps) {
     const formatId = format.format_id;
     const [index, setIndex] = useState(0);
     const card = format.ratings[index];
 
     const [imageSource, setImageSource] = useState("")
+    const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
     const [ratingValue, setRatingValue] = useState<CardRating | null>(card.localRating);
 
     const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
@@ -83,6 +81,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
             formatId,
             rating: ratingValue,
         });
+        card.localRating = ratingValue;
         setHasLocalRating(true);
     }
 
@@ -111,22 +110,34 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         const url = makeUrl(format, index, language);
         const prevUrl = makeUrl(format, (index - 1 + format.ratings.length) % format.ratings.length, language);
         const nextUrl = makeUrl(format, (index + 1) % format.ratings.length, language);
-        async function resolveImage(url: string): Promise<string> {
+        async function resolveImage(url: string): Promise<string[]> {
             // console.log(`Fetching image ${url}`);
             const response = await fetch(url);
-            const responseJson = await response.json();
+            type ScryfallCardResponse = {
+                card_faces?: { image_uris: { normal: string } }[];
+                image_uris?: { normal: string };
+            }
+            const responseJson = await response.json() as ScryfallCardResponse;
             if (!ignore) {
-                return responseJson['image_uris']['normal']
+                if (responseJson['card_faces']) {
+                    return responseJson['card_faces'].map(x => x['image_uris']['normal']);
+                }
+                else if (responseJson["image_uris"]) {
+                    return [responseJson['image_uris']['normal']]
+                }
+                console.error("Scryfall object had neither card_faces nor image_uris");
+                return [""];
             }
             return Promise.reject("Outdated");
         }
         let prevImage = new Image();
         let nextImage = new Image();
         resolveImage(url).then((x) => {
-            setImageSource(x);
+            setImageSource(x[0]);
+            setImageBacksideSource(x[1]);
         });
-        resolveImage(prevUrl).then(s => prevImage.src = s);
-        resolveImage(nextUrl).then(s => nextImage.src = s);
+        resolveImage(prevUrl).then(s => prevImage.src = s[0]);
+        resolveImage(nextUrl).then(s => nextImage.src = s[0]);
 
         return () => {
             ignore = true;
@@ -155,13 +166,42 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
                     <icons.ArrowBackIos />
                 </ui.IconButton>
                 <ui.Stack alignItems="center">
-                    <ui.Container sx={{ "display": "inline-block" }}>
+                    <ui.Container sx={{ position: "relative", width: "100%" }}>
                         {loadingImage ?
                             <ui.Skeleton variant="rectangular">
                                 <img className="card" alt="loading..." src={imageSource} />
                             </ui.Skeleton> : null}
                         <img className="card" alt="loading..." src={imageSource} onLoad={() => setLoadingImage(false)} />
-
+                        {imageBacksideSource &&
+                            <ui.IconButton
+                                color="inherit"
+                                onClick={(e) => {
+                                    setImageSource(imageBacksideSource);
+                                    setImageBacksideSource(imageSource);
+                                }}
+                                sx={{
+                                    fontSize: 80,
+                                    top: "15%",
+                                    right: '12%',
+                                    position: "absolute",
+                                    zIndex: 'tooltip',
+                                    color: "action",
+                                    opacity: "65%",
+                                    backgroundColor: "black",
+                                    height: "9%",
+                                    width: "9%",
+                                    ":hover": {
+                                        backgroundColor: "black",
+                                    },
+                                    '.MuiTouchRipple-ripple .MuiTouchRipple-child': {
+                                        borderRadius: 0,
+                                        backgroundColor: 'transparent',
+                                        color: 'transparent',
+                                    },
+                                }}>
+                                <icons.ChangeCircle sx={{ fontSize: 80 }} />
+                            </ui.IconButton>
+                        }
                     </ui.Container>
                     {hasLocalRating ?
                         <ui.Stack

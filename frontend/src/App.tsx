@@ -12,7 +12,7 @@ import Backend, { Format } from './server/backend';
 
 function App() {
 
-  const format_id = "draft_otj";
+  const format_id = "mid";
   const backend = new Backend("/api"); // current setup has backend and frontend on same network
   const [format, setFormat] = useState<Format | null>(null);
   useEffect(() => {
