@@ -31,27 +31,28 @@ function makeUrl(format: Format, index: number, language: string) {
 export default function FormatRater({ format, language, backend }: RaterProps) {
     const formatId = format.format_id;
     const [index, setIndex] = useState(0);
-    const getCurrentCard = () => format.ratings[index];
+    const card = format.ratings[index];
 
     const [imageSource, setImageSource] = useState("")
-    const [ratingValue, setRatingValue] = useState<CardRating | null>(null);
+    const [ratingValue, setRatingValue] = useState<CardRating | null>(card.localRating);
 
-    const [enableDistribution, setEnableDistribution] = useState(false);
     const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
     const [loadingImage, setLoadingImage] = useState(true);
+    const [hasLocalRating, setHasLocalRating] = useState(card.localRating !== null);
 
-    function increment_locally(card: RatingSchema, rating: CardRating) {
+    function handleViewChanged() {
+        const localRating = format.ratings[index].localRating;
+        setRatingValue(localRating);
+        setHasLocalRating(localRating !== null);
+        // if we have a preexisting value we want to display the previous value
     }
 
     function handleCardChanged(newIndex: number) {
-        if (!enableDistribution) {
-            // We report earlier on reveal of the distribution
-            // So if the distribution is disabled we haven't reported the current value yet 
+        if (!hasLocalRating) {
+            // If the card has no local rating yet it means nothing submitted the chosen value to the backend yet
             reportRating();
         }
 
-        setEnableDistribution(false);
-        setRatingValue(null);
         setIndex(newIndex);
     }
 
@@ -67,7 +68,6 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         if (ratingValue === null) {
             return;
         }
-        const card = getCurrentCard();
 
         // We increment locally mostly to avoid showing no votes for the number the user chose just now
         switch (ratingValue) {
@@ -77,15 +77,13 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
             case 4: card.rated_4 += 1; break;
             case 5: card.rated_5 += 1; break;
         }
-
-        setDistribution(toDistribution(card));
-
-        return backend.postRating({
+        backend.postRating({
             cardCode: card.card_code,
             setCode: card.set_code,
             formatId,
             rating: ratingValue,
         });
+        setHasLocalRating(true);
     }
 
     function handleRatingChange(v: string) {
@@ -99,14 +97,15 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         }
     }
 
-    // change image and fetch ratings
+    // change image and rating distribution
     useEffect(() => {
         let ignore = false;
 
         // set distribution
         const card = format.ratings[index];
         console.log(`card is ${JSON.stringify(card)}`)
-        setDistribution(toDistribution(card))
+        setDistribution(toDistribution(card));
+        handleViewChanged();
 
         // set image
         const url = makeUrl(format, index, language);
@@ -164,7 +163,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
                         <img className="card" alt="loading..." src={imageSource} onLoad={() => setLoadingImage(false)} />
 
                     </ui.Container>
-                    {enableDistribution ?
+                    {hasLocalRating ?
                         <ui.Stack
                             direction="row"
                             alignItems="center"
@@ -198,9 +197,9 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
                     <icons.ArrowForwardIos />
                 </ui.IconButton>
             </ui.Stack >
-            <ui.Button aria-label='Reveal' hidden={enableDistribution} onClick={() => {
-                setEnableDistribution(true);
+            <ui.Button aria-label='Reveal' hidden={card.localRating !== null} onClick={() => {
                 reportRating();
+                setDistribution(toDistribution(card));
             }}>
                 Reveal
             </ui.Button>
