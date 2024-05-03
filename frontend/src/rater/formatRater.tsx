@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import MockBackend, { Distribution } from "../mock/backend";
-import Backend, { RatingSchema, RatingsPostRequest, Format, CardRating } from '../server/backend';
+import Backend, { RatingSchema, RatingsPostRequest, Format, CardRating, Distribution } from '../server/backend';
 
 export type RaterProps = {
     format: Format;
