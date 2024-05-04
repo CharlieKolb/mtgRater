@@ -23,8 +23,8 @@ pub struct AppState {
 }
 
 #[derive(Deserialize)]
-pub struct RatingsFormatExtractor {
-    format_id: String,
+pub struct RatingsCollectionExtractor {
+    collection_id: String,
 }
 
 #[derive(Deserialize)]
@@ -36,7 +36,7 @@ pub struct RatingsPostExtractor {
 
 #[derive(Serialize)]
 pub struct RatingsGetResponse {
-    format_id: String,
+    collection_id: String,
     ratings: Vec<SchemaRatings>,
 }
 
@@ -53,7 +53,7 @@ fn parse_rating(rating_raw: &String) -> Result<RatingsValue, anyhow::Error> {
 
 pub async fn post_ratings(
     State(state): State<AppState>,
-    Query(RatingsFormatExtractor { format_id }): Query<RatingsFormatExtractor>,
+    Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
     Query(RatingsPostExtractor {
         rating: rating_raw,
         card_code,
@@ -65,10 +65,10 @@ pub async fn post_ratings(
         Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
     };
 
-    // @TODO(ckolb): verify card_code and set_code are in existing format
+    // @TODO(ckolb): verify card_code and set_code are in existing collections
 
     if let Err(e) =
-        lib::increment_rating(&state.pool, rating, &format_id, &card_code, &set_code).await
+        lib::increment_rating(&state.pool, rating, &collection_id, &card_code, &set_code).await
     {
         return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
     }
@@ -79,13 +79,13 @@ pub async fn post_ratings(
 
 pub async fn get_ratings(
     State(state): State<AppState>,
-    Query(RatingsFormatExtractor { format_id }): Query<RatingsFormatExtractor>,
+    Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
 ) -> impl IntoResponse {
-    // @TODO(ckolb): verify card_code and set_code are in existing format
-    match lib::get_ratings(&state.pool, &format_id).await {
+    // @TODO(ckolb): verify card_code and set_code are in existing collections
+    match lib::get_ratings(&state.pool, &collection_id).await {
         Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
         Ok(x) => Ok(Json(RatingsGetResponse {
-            format_id,
+            collection_id,
             ratings: x,
         })),
     }

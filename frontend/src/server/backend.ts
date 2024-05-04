@@ -15,8 +15,8 @@ export type RatingSchema = {
 
 
 // snakecase since this matches the backend json
-export type Format = {
-    format_id: string;
+export type Collection = {
+    collection_id: string;
     ratings: RatingSchema[];
 }
 
@@ -25,7 +25,7 @@ export type CardRating = 1 | 2 | 3 | 4 | 5;
 export type LocalRating = CardRating | null;
 
 export type RatingsPostRequest = {
-    formatId: string;
+    collectionId: string;
     rating: CardRating;
     cardCode: string;
     setCode: string;
@@ -43,13 +43,13 @@ function stringToRating(s: string | null): LocalRating {
     }
 }
 
-function makeLocalStorageKey(formatId: string, { set_code, card_code }: Pick<RatingSchema, "card_code" | "set_code">) {
-    return `cardKey_formatId-${formatId}_setCode-${set_code}_cardCode-${card_code}_localRating`;
+function makeLocalStorageKey(collectionId: string, { set_code, card_code }: Pick<RatingSchema, "card_code" | "set_code">) {
+    return `cardKey_collectionId-${collectionId}_setCode-${set_code}_cardCode-${card_code}_localRating`;
 }
 
-function updateFromLocalStorage(formatId: string, ratings: RatingSchema[]) {
+function updateFromLocalStorage(collectionId: string, ratings: RatingSchema[]) {
     for (let rating of ratings) {
-        rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(formatId, rating)));
+        rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, rating)));
     }
     return ratings;
 }
@@ -61,23 +61,23 @@ export default class Backend {
         this.server_url = url;
     }
 
-    public async getRatings(formatId: string): Promise<Format> {
-        const response = await fetch(`${this.server_url}/ratings?format_id=${formatId}`);
+    public async getRatings(collectionId: string): Promise<Collection> {
+        const response = await fetch(`${this.server_url}/ratings?collection_id=${collectionId}`);
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
         }
 
-        const format = await response.json();
+        const collection = await response.json();
 
-        format.ratings = updateFromLocalStorage(formatId, format.ratings);
+        collection.ratings = updateFromLocalStorage(collectionId, collection.ratings);
 
-        return format as Promise<Format>;
+        return collection as Promise<Collection>;
 
     }
 
-    public postRating({ formatId, rating, cardCode, setCode }: RatingsPostRequest): void {
-        localStorage.setItem(makeLocalStorageKey(formatId, { set_code: setCode, card_code: cardCode }), rating.toString());
-        fetch(`${this.server_url}/ratings?format_id=${formatId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}`, {
+    public postRating({ collectionId, rating, cardCode, setCode }: RatingsPostRequest): void {
+        localStorage.setItem(makeLocalStorageKey(collectionId, { set_code: setCode, card_code: cardCode }), rating.toString());
+        fetch(`${this.server_url}/ratings?collection_id=${collectionId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}`, {
             method: "POST",
         });
     }

@@ -4,6 +4,7 @@ use axum::{routing::get, Router};
 use server::AppState;
 use sqlx::postgres::{PgListener, PgPoolOptions};
 use tracing::{info, Instrument};
+use util::CollectionsJson;
 
 mod db;
 mod server;
@@ -11,7 +12,7 @@ mod util;
 
 #[derive(Clone, Debug)]
 struct ServerData {
-    formats: HashMap<String, util::Format>,
+    collections: CollectionsJson,
 }
 
 #[tokio::main]
@@ -25,7 +26,7 @@ async fn main() -> Result<(), anyhow::Error> {
     tracing::subscriber::set_global_default(subscriber)?;
 
     let server_data = ServerData {
-        formats: util::parse_formats()?,
+        collections: util::parse_collections()?,
     };
 
     let database_url = include_str!("../db/url.txt");

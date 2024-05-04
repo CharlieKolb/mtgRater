@@ -2,7 +2,7 @@ use serde::Serialize;
 use sqlx::{prelude::FromRow, Pool, Postgres};
 use tracing::{debug, instrument};
 
-use crate::util::Format;
+use crate::util::Collection;
 
 static GET_RATINGS_QUERY: &str = &include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -41,7 +41,7 @@ enum RatingsColumn {
 pub async fn increment_rating(
     pool: &Pool<Postgres>,
     rating: RatingsValue,
-    format_id: &String,
+    collection_id: &String,
     card_code: &String,
     set_code: &String,
 ) -> Result<(), anyhow::Error> {
@@ -49,13 +49,13 @@ pub async fn increment_rating(
         format!(
             "UPDATE ratings
     SET {0} = {0} + 1
-    WHERE format_id = $2 AND card_code = $3 AND set_code = $4",
+    WHERE collection_id = $2 AND card_code = $3 AND set_code = $4",
             rating.to_sql_column()
         )
         .as_str(),
     )
     .bind(rating.to_sql_column())
-    .bind(format_id)
+    .bind(collection_id)
     .bind(card_code)
     .bind(set_code)
     .execute(pool)
@@ -77,10 +77,10 @@ pub struct SchemaRatings {
 
 pub async fn get_ratings(
     pool: &Pool<Postgres>,
-    format_id: &String,
+    collection_id: &String,
 ) -> Result<Vec<SchemaRatings>, anyhow::Error> {
     let results = sqlx::query_as::<_, SchemaRatings>(GET_RATINGS_QUERY)
-        .bind(format_id)
+        .bind(collection_id)
         .fetch_all(pool)
         .await?;
 

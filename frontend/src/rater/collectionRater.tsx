@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { RatingSchema, RatingsPostRequest, Format, CardRating, Distribution } from '../server/backend';
+import Backend, { RatingSchema, RatingsPostRequest, Collection, CardRating, Distribution } from '../server/backend';
 
 export type RaterProps = {
-    format: Format;
+    collection: Collection;
     language: string; // e.g. "en", "jp"
     backend: Backend;
 }
@@ -18,16 +18,16 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: RatingS
 }
 
 
-function makeUrl(format: Format, index: number, language: string) {
-    const { set_code, card_code } = format.ratings[index];
+function makeUrl(collection: Collection, index: number, language: string) {
+    const { set_code, card_code } = collection.ratings[index];
 
     return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
 }
 
-export default function FormatRater({ format, language, backend }: RaterProps) {
-    const formatId = format.format_id;
+export default function CollectionRater({ collection, language, backend }: RaterProps) {
+    const collectionId = collection.collection_id;
     const [index, setIndex] = useState(0);
-    const card = format.ratings[index];
+    const card = collection.ratings[index];
 
     const [imageSource, setImageSource] = useState("")
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
@@ -38,7 +38,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
     const [hasLocalRating, setHasLocalRating] = useState(card.localRating !== null);
 
     function handleViewChanged() {
-        const localRating = format.ratings[index].localRating;
+        const localRating = collection.ratings[index].localRating;
         setRatingValue(localRating);
         setHasLocalRating(localRating !== null);
         // if we have a preexisting value we want to display the previous value
@@ -54,11 +54,11 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
     }
 
     function handleNextCard() {
-        handleCardChanged((index + 1) % format.ratings.length);
+        handleCardChanged((index + 1) % collection.ratings.length);
     }
 
     function handlePreviousCard() {
-        handleCardChanged((index - 1 + format.ratings.length) % format.ratings.length);
+        handleCardChanged((index - 1 + collection.ratings.length) % collection.ratings.length);
     }
 
     function reportRating() {
@@ -77,7 +77,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         backend.postRating({
             cardCode: card.card_code,
             setCode: card.set_code,
-            formatId,
+            collectionId,
             rating: ratingValue,
         });
         card.localRating = ratingValue;
@@ -100,15 +100,15 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         let ignore = false;
 
         // set distribution
-        const card = format.ratings[index];
+        const card = collection.ratings[index];
         console.log(`card is ${JSON.stringify(card)}`)
         setDistribution(toDistribution(card));
         handleViewChanged();
 
         // set image
-        const url = makeUrl(format, index, language);
-        const prevUrl = makeUrl(format, (index - 1 + format.ratings.length) % format.ratings.length, language);
-        const nextUrl = makeUrl(format, (index + 1) % format.ratings.length, language);
+        const url = makeUrl(collection, index, language);
+        const prevUrl = makeUrl(collection, (index - 1 + collection.ratings.length) % collection.ratings.length, language);
+        const nextUrl = makeUrl(collection, (index + 1) % collection.ratings.length, language);
         async function resolveImage(url: string): Promise<string[]> {
             // console.log(`Fetching image ${url}`);
             const response = await fetch(url);
@@ -141,7 +141,7 @@ export default function FormatRater({ format, language, backend }: RaterProps) {
         return () => {
             ignore = true;
         }
-    }, [format, index])
+    }, [collection, index])
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n, 0)

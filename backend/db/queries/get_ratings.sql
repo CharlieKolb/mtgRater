@@ -6,4 +6,4 @@ SELECT set_code,
     rated_4,
     rated_5
 FROM ratings
-WHERE format_id = $1
+WHERE collection_id = $1
