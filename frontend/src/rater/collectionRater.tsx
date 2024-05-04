@@ -37,6 +37,11 @@ export default function CollectionRater({ collection, language, backend }: Rater
     const [loadingImage, setLoadingImage] = useState(true);
     const [hasLocalRating, setHasLocalRating] = useState(card.localRating !== null);
 
+    useEffect(() => {
+        setIndex(0);
+    }, [collection])
+
+
     function handleViewChanged() {
         const localRating = collection.ratings[index].localRating;
         setRatingValue(localRating);
@@ -141,7 +146,7 @@ export default function CollectionRater({ collection, language, backend }: Rater
         return () => {
             ignore = true;
         }
-    }, [index])
+    }, [collection, index])
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n, 0)

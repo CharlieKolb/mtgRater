@@ -20,7 +20,6 @@ import Backend, { Collection, Collections } from './server/backend';
 
 function App() {
 
-  const collection_id = "neo";
   const backend = new Backend("/api"); // current setup has backend and frontend on same network
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [dropdownKey, setDropdownKey] = useState<string | null>(null);
@@ -73,7 +72,11 @@ function App() {
             </ui.FormControl>
           </ui.Box>
         }
-        {selectedCollection !== null && <Rater key={Date.now()} collection={selectedCollection} language='en' backend={backend} />}
+        <ui.Container sx={{ position: "relative", width: "100%" }}>
+          {selectedCollection !== null ?
+            <Rater collection={selectedCollection} language='en' backend={backend} /> :
+            <ui.Skeleton variant="rectangular"></ui.Skeleton>}
+        </ui.Container>
         {/* </header>
     </div > */}
       </ui.Grid>
