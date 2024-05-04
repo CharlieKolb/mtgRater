@@ -125,8 +125,8 @@ pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Erro
     register_supported_sets(
         pool,
         &CollectionsJson {
-            formats: server_data.collections.formats.clone(),
             entries: filtered_collections,
+            ..server_data.collections.clone()
         },
     )
     .await?;

@@ -42,6 +42,7 @@ pub struct Collection {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CollectionsJson {
+    pub latest: String,
     pub formats: Vec<String>,
     pub entries: HashMap<String, Collection>,
 }

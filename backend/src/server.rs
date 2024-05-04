@@ -90,3 +90,9 @@ pub async fn get_ratings(
         })),
     }
 }
+
+pub async fn get_collections(
+    State(state): State<AppState>,
+) -> Result<Json<crate::util::CollectionsJson>, axum::response::ErrorResponse> {
+    return Ok(Json(state.server_data.collections));
+}

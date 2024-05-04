@@ -141,7 +141,7 @@ export default function CollectionRater({ collection, language, backend }: Rater
         return () => {
             ignore = true;
         }
-    }, [collection, index])
+    }, [index])
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n, 0)

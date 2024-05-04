@@ -31,6 +31,18 @@ export type RatingsPostRequest = {
     setCode: string;
 }
 
+export type CollectionInfo = {
+    title: string;
+    scryfall_query: string;
+    set_order?: string[];
+}
+
+export type Collections = {
+    formats: string[];
+    entries: Record<string, CollectionInfo>;
+    latest: string;
+}
+
 function stringToRating(s: string | null): LocalRating {
     switch (s) {
         case "1": return 1;
@@ -80,6 +92,10 @@ export default class Backend {
         fetch(`${this.server_url}/ratings?collection_id=${collectionId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}`, {
             method: "POST",
         });
+    }
+
+    public async getCollections(): Promise<Collections> {
+        return (await fetch(`${this.server_url}/collections`)).json() as Promise<Collections>;
     }
 }
 

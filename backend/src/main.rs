@@ -62,6 +62,10 @@ async fn main() -> Result<(), anyhow::Error> {
             "/ratings",
             get(server::get_ratings).post(server::post_ratings),
         )
+        .route(
+            "/collections",
+            get(server::get_collections),
+        )
         .with_state(app_state);
 
     let address = env::var("ADDRESS").unwrap_or("127.0.0.1:8000".into());
