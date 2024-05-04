@@ -7,3 +7,4 @@ SELECT set_code,
     rated_5
 FROM ratings
 WHERE collection_id = $1
+ORDER BY {set_order_stmt} length(ratings.card_code), ratings.card_code;

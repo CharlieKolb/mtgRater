@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::Serialize;
 use sqlx::{prelude::FromRow, Pool, Postgres};
 use tracing::{debug, instrument};
@@ -75,14 +77,48 @@ pub struct SchemaRatings {
     rated_5: i32,
 }
 
+/* This function builds a sql statement like
+
+(
+    case set_code
+    when 'a' then 0
+    when 'b' then 1
+    end
+),
+
+dynamically for a list e.g. ["a", "b"]
+
+note the trailing comma is imporant as other statements will follow, hence the empty return for the empty list
+*/
+fn make_set_order_by_expr(set_order: &Vec<String>) -> String {
+    if set_order.len() == 0 {
+        return String::new();
+    }
+
+    let wheres = set_order
+        .iter()
+        .enumerate()
+        .map(|(i, x)| format!(" when '{}' then {} ", x, i))
+        .collect::<String>();
+    return format!("( case set_code {} end),", wheres);
+}
+
 pub async fn get_ratings(
     pool: &Pool<Postgres>,
     collection_id: &String,
+    set_order: &Vec<String>,
 ) -> Result<Vec<SchemaRatings>, anyhow::Error> {
-    let results = sqlx::query_as::<_, SchemaRatings>(GET_RATINGS_QUERY)
-        .bind(collection_id)
-        .fetch_all(pool)
-        .await?;
+    let results = sqlx::query_as::<_, SchemaRatings>(
+        GET_RATINGS_QUERY
+            .replace(
+                "{set_order_stmt}",
+                make_set_order_by_expr(set_order).as_str(),
+            )
+            .as_str(),
+    )
+    .bind(collection_id)
+    .fetch_all(pool)
+    .await?;
 
     debug!("{:?}", results);
     Ok(results)

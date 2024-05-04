@@ -50,6 +50,7 @@ services:
       - PG_PASSWORD=insecure
       - ADDRESS=0.0.0.0:8000
       - RUST_LOG=debug
+      - DATABASE_URL=postgres://postgres:insecure@db:5432/postgres
     ports:
       - "8000:8000"
     depends_on:

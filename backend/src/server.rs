@@ -81,8 +81,11 @@ pub async fn get_ratings(
     State(state): State<AppState>,
     Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
 ) -> impl IntoResponse {
-    // @TODO(ckolb): verify card_code and set_code are in existing collections
-    match lib::get_ratings(&state.pool, &collection_id).await {
+    // @TODO(ckolb): verify collection_id is in existing collections
+
+    let set_order = &state.server_data.collections.entries[&collection_id].set_order;
+
+    match lib::get_ratings(&state.pool, &collection_id, set_order).await {
         Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
         Ok(x) => Ok(Json(RatingsGetResponse {
             collection_id,
