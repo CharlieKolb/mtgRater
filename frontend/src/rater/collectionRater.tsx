@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating } from '../server/backend';
+import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../server/backend';
 import RatingBar from './ratingBar';
 
 export type RaterProps = {
@@ -36,9 +36,6 @@ export default function CollectionRater({ collection, language, backend, formats
 
     const [imageSource, setImageSource] = useState("")
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
-
-    const [loadingImage, setLoadingImage] = useState(true);
-
 
     const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(card));
 
@@ -149,11 +146,7 @@ export default function CollectionRater({ collection, language, backend, formats
                 </ui.Grid>
                 <ui.Grid item>
                     <ui.Container sx={{ position: "relative", width: "100%" }}>
-                        {loadingImage ?
-                            <ui.Skeleton variant="rectangular">
-                                <img className="card" alt="loading..." src={imageSource} />
-                            </ui.Skeleton> : null}
-                        <img className="card" alt="loading..." src={imageSource} onLoad={() => setLoadingImage(false)} />
+                        <img className="card" alt="loading..." src={imageSource} />
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
@@ -199,12 +192,20 @@ export default function CollectionRater({ collection, language, backend, formats
                 }
             </ui.Grid>
             <ui.Grid item>
-                <ui.Button aria-label='Reveal' onClick={() => {
-                    reportRating();
-                    setIndex(index); // hack to refresh local value in ratingBar
-                    setSubmitted(true);
+                <ui.Button onClick={() => {
+                    if (submitted) {
+                        for (const formatId in formats) {
+                            setLocalStorageRating(collectionId, formatId, card.set_code, card.card_code, null);
+                        }
+                        setSubmitted(false);
+                    }
+                    else {
+                        reportRating();
+                        setIndex(index); // hack to refresh local value in ratingBar
+                        setSubmitted(true);
+                    }
                 }}>
-                    Reveal
+                    {submitted ? "Clear" : "Reveal"}
                 </ui.Button>
             </ui.Grid>
         </ui.Grid >

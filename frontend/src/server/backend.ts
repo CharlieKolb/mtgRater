@@ -75,6 +75,15 @@ function updateFromLocalStorage(collectionId: string, ratings: Card[]) {
     return ratings;
 }
 
+export function setLocalStorageRating(collectionId: string, formatId: string, setCode: string, cardCode: string, rating: LocalRating) {
+    if (rating === null) {
+        localStorage.removeItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }));
+    }
+    else {
+        localStorage.setItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }), rating.toString());
+    }
+}
+
 export default class Backend {
     private server_url: string = "not set";
 
@@ -96,7 +105,7 @@ export default class Backend {
     }
 
     public postRating({ collectionId, formatId, rating, cardCode, setCode }: RatingsPostRequest): void {
-        localStorage.setItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }), rating.toString());
+        setLocalStorageRating(collectionId, formatId, setCode, cardCode, rating);
         fetch(`${this.server_url}/ratings?collection_id=${collectionId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}&format_id=${formatId}`, {
             method: "POST",
         });

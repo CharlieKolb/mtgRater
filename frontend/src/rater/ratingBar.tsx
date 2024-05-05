@@ -51,17 +51,18 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
         const shapeCircleStyles = { borderRadius: '50%' };
 
         return (<ui.Grid key={index} item gridRow="1">
-            < ui.Box
-                key={index}
-                bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"
-                }
-                sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/
-                    ...shapeStyles, ...shapeCircleStyles
-                }
-                } />
+            <ui.Tooltip title={distribution[index]}>
+                < ui.Box
+                    key={index}
+                    bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"
+                    }
+                    sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/
+                        ...shapeStyles, ...shapeCircleStyles
+                    }
+                    } />
+            </ui.Tooltip>
         </ui.Grid >);
     }
-
 
     return (
         <ui.Grid container item justifyContent="center">
@@ -69,46 +70,44 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
                 // position: "relative",
                 // width: "100%"
             }}> */}
-            {/* <ui.Grid item>
-                <ui.Typography sx={{
-                    // position: "absolute",
-                    // left: "20%",
-                    // bottom: "0%",
-                }}>{title}</ui.Typography>
-            </ui.Grid> */}
-            {reveal ?
-                <ui.Grid container item
-                    display="grid"
-                    alignItems="center"
-                    justifyItems="center"
-                    gridAutoColumns="1fr"
-                    minHeight={75}
-                    maxHeight={75}
-                    maxWidth={370}
-                    spacing={0}>
-                    {makeDistributionBox(0)}
-                    {makeDistributionBox(1)}
-                    {makeDistributionBox(2)}
-                    {makeDistributionBox(3)}
-                    {makeDistributionBox(4)}
-                </ui.Grid > :
-                <ui.Grid item minHeight={75} maxHeight={75}>
-                    <ui.FormControl>
-                        <ui.RadioGroup
-                            row
-                            name="row-radio-buttons-group"
-                            onChange={(e, v) => handleRatingChange(v)}
-                        >
-                            <ui.FormControlLabel key="1" value="1" control={<ui.Radio />} label="1" labelPlacement="bottom" />
-                            <ui.FormControlLabel key="2" value="2" control={<ui.Radio />} label="2" labelPlacement="bottom" />
-                            <ui.FormControlLabel key="3" value="3" control={<ui.Radio />} label="3" labelPlacement="bottom" />
-                            <ui.FormControlLabel key="4" value="4" control={<ui.Radio />} label="4" labelPlacement="bottom" />
-                            <ui.FormControlLabel key="5" value="5" control={<ui.Radio />} label="5" labelPlacement="bottom" />
-                        </ui.RadioGroup>
-                    </ui.FormControl>
+            <ui.Grid item alignContent="center" justifyContent="left" minWidth="90px" sx={{ textTransform: 'capitalize', m: 1 }}>
+                <ui.Typography sx={{ textTransform: 'capitalize' }}>{title}</ui.Typography>
+            </ui.Grid>
+            {
+                reveal ?
+                    <ui.Grid container item
+                        display="grid"
+                        alignItems="center"
+                        justifyItems="center"
+                        gridAutoColumns="1fr"
+                        minHeight={75}
+                        maxHeight={75}
+                        maxWidth={370}
+                        spacing={0}>
+                        {makeDistributionBox(0)}
+                        {makeDistributionBox(1)}
+                        {makeDistributionBox(2)}
+                        {makeDistributionBox(3)}
+                        {makeDistributionBox(4)}
+                    </ui.Grid > :
+                    <ui.Grid item minHeight={75} maxHeight={75}>
+                        <ui.FormControl>
+                            <ui.RadioGroup
+                                row
+                                name="row-radio-buttons-group"
+                                onChange={(e, v) => handleRatingChange(v)}
+                            >
+                                <ui.FormControlLabel key="1" value="1" control={<ui.Radio />} label="1" labelPlacement="bottom" />
+                                <ui.FormControlLabel key="2" value="2" control={<ui.Radio />} label="2" labelPlacement="bottom" />
+                                <ui.FormControlLabel key="3" value="3" control={<ui.Radio />} label="3" labelPlacement="bottom" />
+                                <ui.FormControlLabel key="4" value="4" control={<ui.Radio />} label="4" labelPlacement="bottom" />
+                                <ui.FormControlLabel key="5" value="5" control={<ui.Radio />} label="5" labelPlacement="bottom" />
+                            </ui.RadioGroup>
+                        </ui.FormControl>
 
-                </ui.Grid>
+                    </ui.Grid>
             }
-            {/* </ui.Container> */}
+            {/* Spacing to keep previous component centered */}
+            <ui.Grid item minWidth="90px" />
         </ui.Grid >);
 }
