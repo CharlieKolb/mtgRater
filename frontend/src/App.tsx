@@ -54,7 +54,7 @@ function App() {
         alignItems="center"
         justifyContent="center">
         {collections !== null &&
-          <ui.Box sx={{ minWidth: 120 }}>
+          <ui.Grid item>
             <ui.FormControl>
               <ui.InputLabel id="set-select-label">Set</ui.InputLabel>
               <ui.Select
@@ -67,14 +67,11 @@ function App() {
                 {Object.keys(collections.entries).map(k => <ui.MenuItem key={k} value={k}>{k.toUpperCase()}</ui.MenuItem>)}
               </ui.Select>
             </ui.FormControl>
-          </ui.Box>
+          </ui.Grid>
         }
-        <ui.Container sx={{ position: "relative", width: "100%" }}>
-          {collections !== null && selectedCollection !== null &&
-            <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
-          }
-        </ui.Container>
-        { }
+        {collections !== null && selectedCollection !== null &&
+          <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
+        }
       </ui.Grid>
     </ThemeProvider>
   );

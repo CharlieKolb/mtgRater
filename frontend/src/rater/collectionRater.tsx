@@ -140,13 +140,14 @@ export default function CollectionRater({ collection, language, backend, formats
     }, [collection, index])
 
     return (
-        <ui.Stack alignItems="center">
-
-            <ui.Stack direction="row" alignItems="center" spacing={4}>
-                <ui.IconButton aria-label="arrowBack" color="primary" onClick={handlePreviousCard}>
-                    <icons.ArrowBackIos />
-                </ui.IconButton>
-                <ui.Stack alignItems="center">
+        <ui.Grid container item direction="column" alignItems="center" spacing={1}>
+            <ui.Grid item container direction="row" alignItems="center" justifyContent="center" spacing={2}>
+                <ui.Grid item>
+                    <ui.IconButton color="primary" onClick={handlePreviousCard}>
+                        <icons.ArrowBackIos />
+                    </ui.IconButton>
+                </ui.Grid>
+                <ui.Grid item>
                     <ui.Container sx={{ position: "relative", width: "100%" }}>
                         {loadingImage ?
                             <ui.Skeleton variant="rectangular">
@@ -184,22 +185,28 @@ export default function CollectionRater({ collection, language, backend, formats
                             </ui.IconButton>
                         }
                     </ui.Container>
-                </ui.Stack >
-                <ui.IconButton aria-label="arrowForward" color="primary" onClick={handleNextCard}>
-                    <icons.ArrowForwardIos />
-                </ui.IconButton>
-            </ui.Stack >
-            {formats.map(x =>
-                <RatingBar key={x} title={x} reveal={submitted} rating={card.rating_by_format[x]} onRatingChanged={(v) => card.rating_by_format[x].localRating = v} />
-            )
-            }
-            <ui.Button aria-label='Reveal' onClick={() => {
-                reportRating();
-                setIndex(index); // hack to refresh local value in ratingBar
-                setSubmitted(true);
-            }}>
-                Reveal
-            </ui.Button>
-        </ui.Stack >
+                </ui.Grid>
+                <ui.Grid item>
+                    <ui.IconButton color="primary" onClick={handleNextCard}>
+                        <icons.ArrowForwardIos />
+                    </ui.IconButton>
+                </ui.Grid >
+            </ui.Grid >
+            <ui.Grid item container direction="column" justifyContent="center" spacing={1}>
+                {formats.map(x =>
+                    <RatingBar key={x} title={x} reveal={submitted} rating={card.rating_by_format[x]} onRatingChanged={(v) => card.rating_by_format[x].localRating = v} />
+                )
+                }
+            </ui.Grid>
+            <ui.Grid item>
+                <ui.Button aria-label='Reveal' onClick={() => {
+                    reportRating();
+                    setIndex(index); // hack to refresh local value in ratingBar
+                    setSubmitted(true);
+                }}>
+                    Reveal
+                </ui.Button>
+            </ui.Grid>
+        </ui.Grid >
     )
 }

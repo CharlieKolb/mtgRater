@@ -21,7 +21,6 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
 }
 
 export default function RatingBar({ title, reveal, rating, onRatingChanged }: RatingBarProps) {
-    console.log(`Distribution is ${toDistribution(rating)}`)
     const distribution = toDistribution(rating);
     const [ratingValue, setRatingValue] = useState<CardRating | null>(rating.localRating);
 
@@ -41,56 +40,59 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
         onRatingChanged(res);
     }
 
+    useEffect(() => {
+        setRatingValue(rating.localRating);
+    }, [rating])
+
     const makeDistributionBox = (index: number) => {
-        const totalVotes = distribution.reduce((v, n) => v + n, 1); // Start with 1 to avoid div by 0
-        const diameter = Math.max(2.5, (distribution[index] / totalVotes) * 75);
-        console.log(`diameter is ${diameter}`)
+        const totalVotes = distribution.reduce((v, n) => v + n); // Start with 1 to avoid div by 0
+        const diameter = Math.max(2.5, (distribution[index] / Math.max(1, totalVotes)) * 70);
         const shapeStyles = { width: diameter, height: diameter };
         const shapeCircleStyles = { borderRadius: '50%' };
 
-        return <ui.Box
-            key={index}
-            // These are to format the optional text inside the circle, which is currently disabled
-            // display="flex"
-            // justifyContent="center"
-            // alignItems="center"
-
-            bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"}
-            sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/ ...shapeStyles, ...shapeCircleStyles }}>
-            {/* <ui.Typography >{distribution[index]}</ui.Typography> */}
-        </ui.Box >
+        return (<ui.Grid key={index} item gridRow="1">
+            < ui.Box
+                key={index}
+                bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"
+                }
+                sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/
+                    ...shapeStyles, ...shapeCircleStyles
+                }
+                } />
+        </ui.Grid >);
     }
 
 
     return (
-        <ui.Stack direction="row" alignSelf="center">
+        <ui.Grid container item justifyContent="center">
             {/* <ui.Container sx={{
                 // position: "relative",
                 // width: "100%"
             }}> */}
-
-            {/* <ui.Typography sx={{
-                position: "absolute",
-                // left: "20%",
-                // bottom: "0%",
-            }}>{title}</ui.Typography> */}
-
+            {/* <ui.Grid item>
+                <ui.Typography sx={{
+                    // position: "absolute",
+                    // left: "20%",
+                    // bottom: "0%",
+                }}>{title}</ui.Typography>
+            </ui.Grid> */}
             {reveal ?
-                <ui.Stack
-                    direction="row"
+                <ui.Grid container item
+                    display="grid"
                     alignItems="center"
-                    justifyContent="space-between"
-                    // justifyItems="center"
-                    minHeight={80} // hardcoded to fit with the alternate component so the rest of the tree doesn't move when we swap them - there's probably a better way
-                    spacing={6}
-                >
+                    justifyItems="center"
+                    gridAutoColumns="1fr"
+                    minHeight={75}
+                    maxHeight={75}
+                    maxWidth={370}
+                    spacing={0}>
                     {makeDistributionBox(0)}
                     {makeDistributionBox(1)}
                     {makeDistributionBox(2)}
                     {makeDistributionBox(3)}
                     {makeDistributionBox(4)}
-                </ui.Stack > :
-                <ui.Stack minHeight={80}>
+                </ui.Grid > :
+                <ui.Grid item minHeight={75} maxHeight={75}>
                     <ui.FormControl>
                         <ui.RadioGroup
                             row
@@ -105,8 +107,8 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
                         </ui.RadioGroup>
                     </ui.FormControl>
 
-                </ui.Stack>
+                </ui.Grid>
             }
             {/* </ui.Container> */}
-        </ui.Stack >);
+        </ui.Grid >);
 }
