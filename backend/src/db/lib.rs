@@ -46,12 +46,13 @@ pub async fn increment_rating(
     collection_id: &String,
     card_code: &String,
     set_code: &String,
+    format_id: &String,
 ) -> Result<(), anyhow::Error> {
     sqlx::query(
         format!(
             "UPDATE ratings
     SET {0} = {0} + 1
-    WHERE collection_id = $2 AND card_code = $3 AND set_code = $4",
+    WHERE collection_id = $2 AND card_code = $3 AND set_code = $4 AND format_id = $5",
             rating.to_sql_column()
         )
         .as_str(),
@@ -60,6 +61,7 @@ pub async fn increment_rating(
     .bind(collection_id)
     .bind(card_code)
     .bind(set_code)
+    .bind(format_id)
     .execute(pool)
     .await?;
 
@@ -68,8 +70,9 @@ pub async fn increment_rating(
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct SchemaRatings {
-    set_code: String,
-    card_code: String,
+    pub format_id: String,
+    pub set_code: String,
+    pub card_code: String,
     rated_1: i32,
     rated_2: i32,
     rated_3: i32,

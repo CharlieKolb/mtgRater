@@ -1,23 +1,29 @@
 
 export type Distribution = [number, number, number, number, number]
 
-// snakecase since this matches the backend json
-export type RatingSchema = {
-    set_code: string,
-    card_code: string,
+export type Rating = {
     rated_1: number,
     rated_2: number,
     rated_3: number,
     rated_4: number,
     rated_5: number,
-    localRating: LocalRating;
+    localRating: LocalRating,
+}
+
+export type RatingByFormat = Record<string, Rating>;
+
+// snakecase since this matches the backend json
+export type Card = {
+    set_code: string,
+    card_code: string,
+    rating_by_format: RatingByFormat;
 }
 
 
 // snakecase since this matches the backend json
 export type Collection = {
     collection_id: string;
-    ratings: RatingSchema[];
+    ratings: Card[];
 }
 
 export type CardRating = 1 | 2 | 3 | 4 | 5;
@@ -26,6 +32,7 @@ export type LocalRating = CardRating | null;
 
 export type RatingsPostRequest = {
     collectionId: string;
+    formatId: string;
     rating: CardRating;
     cardCode: string;
     setCode: string;
@@ -55,13 +62,15 @@ function stringToRating(s: string | null): LocalRating {
     }
 }
 
-function makeLocalStorageKey(collectionId: string, { set_code, card_code }: Pick<RatingSchema, "card_code" | "set_code">) {
-    return `cardKey_collectionId-${collectionId}_setCode-${set_code}_cardCode-${card_code}_localRating`;
+function makeLocalStorageKey(collectionId: string, formatId: string, { set_code, card_code }: Pick<Card, "set_code" | "card_code">) {
+    return `cardKey_collectionId-${collectionId}_formatId-${formatId}_setCode-${set_code}_cardCode-${card_code}_localRating`;
 }
 
-function updateFromLocalStorage(collectionId: string, ratings: RatingSchema[]) {
-    for (let rating of ratings) {
-        rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, rating)));
+function updateFromLocalStorage(collectionId: string, ratings: Card[]) {
+    for (let schema of ratings) {
+        for (let [formatId, rating] of Object.entries(schema.rating_by_format)) {
+            rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, formatId, schema)));
+        }
     }
     return ratings;
 }
@@ -78,18 +87,17 @@ export default class Backend {
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
         }
+        const collection = await response.json() as Collection;
 
-        const collection = await response.json();
+        updateFromLocalStorage(collectionId, collection.ratings);
 
-        collection.ratings = updateFromLocalStorage(collectionId, collection.ratings);
-
-        return collection as Promise<Collection>;
+        return collection;
 
     }
 
-    public postRating({ collectionId, rating, cardCode, setCode }: RatingsPostRequest): void {
-        localStorage.setItem(makeLocalStorageKey(collectionId, { set_code: setCode, card_code: cardCode }), rating.toString());
-        fetch(`${this.server_url}/ratings?collection_id=${collectionId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}`, {
+    public postRating({ collectionId, formatId, rating, cardCode, setCode }: RatingsPostRequest): void {
+        localStorage.setItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }), rating.toString());
+        fetch(`${this.server_url}/ratings?collection_id=${collectionId}&rating=${rating}&card_code=${cardCode}&set_code=${setCode}&format_id=${formatId}`, {
             method: "POST",
         });
     }

@@ -23,18 +23,28 @@ static MIGRATIONS: &[&str] = &[
     )),
 ];
 
-async fn generate_ratings_query(collection_item: &CollectionItem) -> Result<String, anyhow::Error> {
+async fn generate_ratings_query(
+    formats: &Vec<String>,
+    collection_item: &CollectionItem,
+) -> Result<String, anyhow::Error> {
     let (name, ref cards) = collection_item;
 
-    Ok(cards
-        .into_iter()
-        .map(|x| {
-            format!(
-                "('{}', '{}', '{}')",
-                name.replace("'", "''"),
-                x.set.replace("'", "''"),
-                x.collector_number.replace("'", "''")
-            )
+    Ok(formats
+        .iter()
+        .map(|format| {
+            cards
+                .iter()
+                .map(|x| {
+                    format!(
+                        "('{}', '{}', '{}', '{}')",
+                        name.replace("'", "''"),
+                        x.set.replace("'", "''"),
+                        x.collector_number.replace("'", "''"),
+                        format,
+                    )
+                })
+                .collect::<Vec<String>>()
+                .join(",")
         })
         .collect::<Vec<String>>()
         .join(","))
@@ -63,10 +73,10 @@ async fn register_supported_sets(
 ) -> Result<(), Error> {
     for (key, collection) in collections.entries.iter() {
         let item = util::resolve_collection(key, collection).await?;
-        let ratings_query: String = generate_ratings_query(&item).await?;
+        let ratings_query: String = generate_ratings_query(&collections.formats, &item).await?;
         sqlx::query(
             format!(
-                "INSERT INTO ratings(collection_id, set_code, card_code)
+                "INSERT INTO ratings(collection_id, set_code, card_code, format_id)
     VALUES {} ON CONFLICT DO NOTHING",
                 ratings_query
             )

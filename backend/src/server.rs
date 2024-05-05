@@ -32,12 +32,20 @@ pub struct RatingsPostExtractor {
     rating: String,
     card_code: String,
     set_code: String,
+    format_id: String,
+}
+
+#[derive(Serialize)]
+struct CardGetResponse {
+    set_code: String,
+    card_code: String,
+    rating_by_format: HashMap<String, SchemaRatings>,
 }
 
 #[derive(Serialize)]
 pub struct RatingsGetResponse {
     collection_id: String,
-    ratings: Vec<SchemaRatings>,
+    ratings: Vec<CardGetResponse>,
 }
 
 fn parse_rating(rating_raw: &String) -> Result<RatingsValue, anyhow::Error> {
@@ -58,6 +66,7 @@ pub async fn post_ratings(
         rating: rating_raw,
         card_code,
         set_code,
+        format_id,
     }): Query<RatingsPostExtractor>,
 ) -> impl IntoResponse {
     let rating = match parse_rating(&rating_raw) {
@@ -67,14 +76,43 @@ pub async fn post_ratings(
 
     // @TODO(ckolb): verify card_code and set_code are in existing collections
 
-    if let Err(e) =
-        lib::increment_rating(&state.pool, rating, &collection_id, &card_code, &set_code).await
+    if let Err(e) = lib::increment_rating(
+        &state.pool,
+        rating,
+        &collection_id,
+        &card_code,
+        &set_code,
+        &format_id,
+    )
+    .await
     {
         return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
     }
 
     // We intentionally do not return an updated result
     Ok(())
+}
+
+fn parse_schemas(v: Vec<SchemaRatings>) -> Vec<CardGetResponse> {
+    fn is_same_card(sr: &SchemaRatings, c: &CardGetResponse) -> bool {
+        sr.set_code == c.set_code && sr.card_code == c.card_code
+    }
+
+    v.into_iter()
+        .fold(Vec::<CardGetResponse>::new(), |mut x, y| {
+            if let Some(e) = x.last_mut() {
+                if is_same_card(&y, e) {
+                    e.rating_by_format.insert(y.format_id.clone(), y);
+                    return x;
+                }
+            }
+            x.push(CardGetResponse {
+                card_code: y.card_code.clone(),
+                set_code: y.set_code.clone(),
+                rating_by_format: HashMap::from([(y.format_id.clone(), y)]),
+            });
+            x
+        })
 }
 
 pub async fn get_ratings(
@@ -89,7 +127,7 @@ pub async fn get_ratings(
         Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
         Ok(x) => Ok(Json(RatingsGetResponse {
             collection_id,
-            ratings: x,
+            ratings: parse_schemas(x),
         })),
     }
 }

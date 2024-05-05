@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import logo from './logo.svg';
 import './App.css';
 import Rater from './rater/collectionRater';
 
@@ -36,8 +35,8 @@ function App() {
   useEffect(() => {
 
     (async () => {
-      if (collections === null && dropdownKey === null) return;
-      const new_collection = await backend.getRatings(dropdownKey || collections!.latest);
+      if (collections === null) return;
+      const new_collection = await backend.getRatings(dropdownKey || collections.latest);
       console.log(`Updated collection to ${JSON.stringify(new_collection)}`);
       setSelectedCollection(new_collection);
     })();
@@ -46,8 +45,6 @@ function App() {
 
 
   return (
-    // <div className="App">
-    //   <header className="App-header">
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ui.Grid container
@@ -73,12 +70,11 @@ function App() {
           </ui.Box>
         }
         <ui.Container sx={{ position: "relative", width: "100%" }}>
-          {selectedCollection !== null ?
-            <Rater collection={selectedCollection} language='en' backend={backend} /> :
-            <ui.Skeleton variant="rectangular"></ui.Skeleton>}
+          {collections !== null && selectedCollection !== null &&
+            <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
+          }
         </ui.Container>
-        {/* </header>
-    </div > */}
+        { }
       </ui.Grid>
     </ThemeProvider>
   );

@@ -3,19 +3,17 @@ import React, { useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { RatingSchema, RatingsPostRequest, Collection, CardRating, Distribution } from '../server/backend';
+import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating } from '../server/backend';
+import RatingBar from './ratingBar';
 
 export type RaterProps = {
     collection: Collection;
     language: string; // e.g. "en", "jp"
     backend: Backend;
+    formats: string[];
 }
 
-function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: RatingSchema): Distribution {
-    return [
-        rated_1, rated_2, rated_3, rated_4, rated_5,
-    ];
-}
+
 
 
 function makeUrl(collection: Collection, index: number, language: string) {
@@ -24,33 +22,35 @@ function makeUrl(collection: Collection, index: number, language: string) {
     return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
 }
 
-export default function CollectionRater({ collection, language, backend }: RaterProps) {
+function hasAtLeastOneLocalRating(card: Card) {
+    console.log(`Card localRatings: ${Object.values(card.rating_by_format).map(x => x.localRating)}`)
+    return Object.values(card.rating_by_format).some(x => x.localRating !== null);
+}
+
+
+export default function CollectionRater({ collection, language, backend, formats }: RaterProps) {
     const collectionId = collection.collection_id;
     const [index, setIndex] = useState(0);
     const card = collection.ratings[index];
+    const ratingsByFormat = card.rating_by_format;
 
     const [imageSource, setImageSource] = useState("")
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
-    const [ratingValue, setRatingValue] = useState<CardRating | null>(card.localRating);
 
-    const [distribution, setDistribution] = useState<Distribution>([0, 0, 0, 0, 0]);
     const [loadingImage, setLoadingImage] = useState(true);
-    const [hasLocalRating, setHasLocalRating] = useState(card.localRating !== null);
+
+
+    const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(card));
+
+
 
     useEffect(() => {
         setIndex(0);
     }, [collection])
 
 
-    function handleViewChanged() {
-        const localRating = collection.ratings[index].localRating;
-        setRatingValue(localRating);
-        setHasLocalRating(localRating !== null);
-        // if we have a preexisting value we want to display the previous value
-    }
-
     function handleCardChanged(newIndex: number) {
-        if (!hasLocalRating) {
+        if (!submitted) {
             // If the card has no local rating yet it means nothing submitted the chosen value to the backend yet
             reportRating();
         }
@@ -67,38 +67,30 @@ export default function CollectionRater({ collection, language, backend }: Rater
     }
 
     function reportRating() {
-        if (ratingValue === null) {
-            return;
-        }
+        for (const [key, rating] of Object.entries(ratingsByFormat)) {
+            if (rating.localRating === null) {
+                break;
+            }
 
-        // We increment locally mostly to avoid showing no votes for the number the user chose just now
-        switch (ratingValue) {
-            case 1: card.rated_1 += 1; break;
-            case 2: card.rated_2 += 1; break;
-            case 3: card.rated_3 += 1; break;
-            case 4: card.rated_4 += 1; break;
-            case 5: card.rated_5 += 1; break;
+            // We increment locally mostly to avoid showing no votes for the number the user chose just now
+            switch (rating.localRating) {
+                case 1: rating.rated_1 += 1; break;
+                case 2: rating.rated_2 += 1; break;
+                case 3: rating.rated_3 += 1; break;
+                case 4: rating.rated_4 += 1; break;
+                case 5: rating.rated_5 += 1; break;
+            }
+            backend.postRating({
+                cardCode: card.card_code,
+                setCode: card.set_code,
+                formatId: key,
+                collectionId,
+                rating: rating.localRating,
+            });
+
         }
-        backend.postRating({
-            cardCode: card.card_code,
-            setCode: card.set_code,
-            collectionId,
-            rating: ratingValue,
-        });
-        card.localRating = ratingValue;
-        setHasLocalRating(true);
     }
 
-    function handleRatingChange(v: string) {
-        switch (v) {
-            case "1": setRatingValue(1); break;
-            case "2": setRatingValue(2); break;
-            case "3": setRatingValue(3); break;
-            case "4": setRatingValue(4); break;
-            case "5": setRatingValue(5); break;
-            default: console.log(`Received unexpected rating ${v}`);
-        }
-    }
 
     // change image and rating distribution
     useEffect(() => {
@@ -107,8 +99,7 @@ export default function CollectionRater({ collection, language, backend }: Rater
         // set distribution
         const card = collection.ratings[index];
         console.log(`card is ${JSON.stringify(card)}`)
-        setDistribution(toDistribution(card));
-        handleViewChanged();
+        setSubmitted(hasAtLeastOneLocalRating(card));
 
         // set image
         const url = makeUrl(collection, index, language);
@@ -148,20 +139,6 @@ export default function CollectionRater({ collection, language, backend }: Rater
         }
     }, [collection, index])
 
-    const makeDistributionBox = (index: number) => {
-        const totalVotes = distribution.reduce((v, n) => v + n, 0)
-        const diameter = Math.max(2.5, (distribution[index] / totalVotes) * 75);
-        const shapeStyles = { width: diameter, height: diameter };
-        const shapeCircleStyles = { borderRadius: '50%' };
-
-        return <ui.Box display="flex"
-            justifyContent="center"
-            alignItems="center"
-            bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"}
-            sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/ ...shapeStyles, ...shapeCircleStyles }}>
-            {/* <ui.Typography >{distribution[index]}</ui.Typography> */}
-        </ui.Box >
-    }
     return (
         <ui.Stack alignItems="center">
 
@@ -207,43 +184,19 @@ export default function CollectionRater({ collection, language, backend }: Rater
                             </ui.IconButton>
                         }
                     </ui.Container>
-                    {hasLocalRating ?
-                        <ui.Stack
-                            direction="row"
-                            alignItems="center"
-                            minHeight={80} // hardcoded to fit with the alternate component so the rest of the tree doesn't move when we swap them - there's probably a better way
-                            spacing={6}
-                        >
-                            {makeDistributionBox(0)}
-                            {makeDistributionBox(1)}
-                            {makeDistributionBox(2)}
-                            {makeDistributionBox(3)}
-                            {makeDistributionBox(4)}
-                        </ui.Stack > :
-                        <ui.Stack minHeight={80}>
-                            <ui.FormControl>
-                                <ui.RadioGroup
-                                    row
-                                    name="row-radio-buttons-group"
-                                    onChange={(e, v) => handleRatingChange(v)}
-                                >
-                                    <ui.FormControlLabel value="1" control={<ui.Radio />} label="1" labelPlacement="bottom" />
-                                    <ui.FormControlLabel value="2" control={<ui.Radio />} label="2" labelPlacement="bottom" />
-                                    <ui.FormControlLabel value="3" control={<ui.Radio />} label="3" labelPlacement="bottom" />
-                                    <ui.FormControlLabel value="4" control={<ui.Radio />} label="4" labelPlacement="bottom" />
-                                    <ui.FormControlLabel value="5" control={<ui.Radio />} label="5" labelPlacement="bottom" />
-                                </ui.RadioGroup>
-                            </ui.FormControl>
-
-                        </ui.Stack>}
                 </ui.Stack >
                 <ui.IconButton aria-label="arrowForward" color="primary" onClick={handleNextCard}>
                     <icons.ArrowForwardIos />
                 </ui.IconButton>
             </ui.Stack >
-            <ui.Button aria-label='Reveal' hidden={card.localRating !== null} onClick={() => {
+            {formats.map(x =>
+                <RatingBar key={x} title={x} reveal={submitted} rating={card.rating_by_format[x]} onRatingChanged={(v) => card.rating_by_format[x].localRating = v} />
+            )
+            }
+            <ui.Button aria-label='Reveal' onClick={() => {
                 reportRating();
-                setDistribution(toDistribution(card));
+                setIndex(index); // hack to refresh local value in ratingBar
+                setSubmitted(true);
             }}>
                 Reveal
             </ui.Button>
