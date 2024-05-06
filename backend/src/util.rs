@@ -1,8 +1,12 @@
 use anyhow::Error;
+use core::time;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use serde_json;
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    thread,
+};
 use tracing::info;
 
 #[derive(Hash, PartialEq, Eq, Default, Debug, Serialize, Deserialize)]
@@ -67,6 +71,8 @@ pub async fn get_cards_from_query(
             break;
         }
         cards.extend(card_page.data.into_iter());
+
+        thread::sleep(time::Duration::from_millis(100));
 
         i += 1;
     }
