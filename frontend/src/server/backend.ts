@@ -1,3 +1,4 @@
+import { ScryfallCard } from "@scryfall/api-types";
 
 export type Distribution = [number, number, number, number, number]
 
@@ -21,9 +22,14 @@ export type Card = {
 
 
 // snakecase since this matches the backend json
-export type Collection = {
+type CollectionResponse = {
     collection_id: string;
+    collection_info: CollectionInfo;
     ratings: Card[];
+}
+
+export type Collection = CollectionResponse & {
+    cardDetails: Promise<Map<string, ScryfallCard.Any>>,
 }
 
 export type CardRating = 1 | 2 | 3 | 4 | 5;
@@ -84,6 +90,23 @@ export function setLocalStorageRating(collectionId: string, formatId: string, se
     }
 }
 
+async function fetchCardInfo(collection: CollectionResponse): Promise<Map<string, ScryfallCard.Any>> {
+    let query = "https://api.scryfall.com/cards/search?q=-is%3Adigital+" + collection.collection_info.scryfall_query + "&unique=cards";
+    let res = new Map<string, ScryfallCard.Any>();
+    do {
+        const x = await (await fetch(query)).json();
+        query = x.next_page;
+        for (const card of (x.data as ScryfallCard.Any[])) {
+            const { set, collector_number } = card;
+            res.set(set + collector_number, card);
+
+        }
+    } while (query);
+
+    return res;
+}
+
+
 export default class Backend {
     private server_url: string = "not set";
 
@@ -96,11 +119,11 @@ export default class Backend {
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
         }
-        const collection = await response.json() as Collection;
+        const collection = await response.json() as CollectionResponse;
 
         updateFromLocalStorage(collectionId, collection.ratings);
 
-        return collection;
+        return Object.assign({}, collection, { cardDetails: fetchCardInfo(collection) });
 
     }
 

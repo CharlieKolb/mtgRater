@@ -5,6 +5,7 @@ import * as icons from '@mui/icons-material';
 
 import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../server/backend';
 import RatingBar from './ratingBar';
+import { ScryfallCard, ScryfallCardFace } from '@scryfall/api-types';
 
 export type RaterProps = {
     collection: Collection;
@@ -13,7 +14,7 @@ export type RaterProps = {
     formats: string[];
 }
 
-
+const DEFAULT_IMAGE = "https://cards.scryfall.io/normal/front/5/a/5aa90ab6-2686-4462-8725-5d4370c05437.jpg?1663738897"
 
 
 function makeUrl(collection: Collection, index: number, language: string) {
@@ -103,19 +104,14 @@ export default function CollectionRater({ collection, language, backend, formats
         const prevUrl = makeUrl(collection, (index - 1 + collection.ratings.length) % collection.ratings.length, language);
         const nextUrl = makeUrl(collection, (index + 1) % collection.ratings.length, language);
         async function resolveImage(url: string): Promise<string[]> {
-            // console.log(`Fetching image ${url}`);
-            const response = await fetch(url);
-            type ScryfallCardResponse = {
-                card_faces?: { image_uris: { normal: string } }[];
-                image_uris?: { normal: string };
-            }
-            const responseJson = await response.json() as ScryfallCardResponse;
-            if (!ignore) {
-                if (responseJson['card_faces']) {
-                    return responseJson['card_faces'].map(x => x['image_uris']['normal']);
+            const cardDetail = (await collection.cardDetails).get(card.set_code + card.card_code);
+            if (!ignore && cardDetail) {
+                if ("image_uris" in cardDetail) {
+                    return [cardDetail.image_uris?.normal || DEFAULT_IMAGE];
                 }
-                else if (responseJson["image_uris"]) {
-                    return [responseJson['image_uris']['normal']]
+
+                if ('card_faces' in cardDetail) {
+                    return (cardDetail as ScryfallCard.AnyDoubleSidedSplit)['card_faces'].map(x => x.image_uris?.normal || DEFAULT_IMAGE);
                 }
                 console.error("Scryfall object had neither card_faces nor image_uris");
                 return [""];

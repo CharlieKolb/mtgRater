@@ -13,6 +13,7 @@ use sqlx::{Pool, Postgres};
 
 use crate::{
     db::lib::{self, RatingsValue, SchemaRatings},
+    util::Collection,
     ServerData,
 };
 
@@ -45,6 +46,7 @@ struct CardGetResponse {
 #[derive(Serialize)]
 pub struct RatingsGetResponse {
     collection_id: String,
+    collection_info: Collection,
     ratings: Vec<CardGetResponse>,
 }
 
@@ -120,13 +122,16 @@ pub async fn get_ratings(
     Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
 ) -> impl IntoResponse {
     // @TODO(ckolb): verify collection_id is in existing collections
+    let collection = match state.server_data.collections.entries.get(&collection_id) {
+        Some(x) => x,
+        None => return Err((StatusCode::BAD_REQUEST, collection_id)),
+    };
 
-    let set_order = &state.server_data.collections.entries[&collection_id].set_order;
-
-    match lib::get_ratings(&state.pool, &collection_id, set_order).await {
+    match lib::get_ratings(&state.pool, &collection_id, &collection.set_order).await {
         Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
         Ok(x) => Ok(Json(RatingsGetResponse {
             collection_id,
+            collection_info: collection.clone(),
             ratings: parse_schemas(x),
         })),
     }
