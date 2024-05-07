@@ -47,14 +47,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ui.Grid container
-        direction="column"
+      <ui.Stack
         marginTop={5}
+        marginLeft={2}
         gap={2}
-        alignItems="center"
-        justifyContent="center">
+      >
         {collections !== null &&
-          <ui.Grid item>
+          <ui.Box>
             <ui.FormControl>
               <ui.InputLabel id="set-select-label">Set</ui.InputLabel>
               <ui.Select
@@ -67,12 +66,15 @@ function App() {
                 {Object.keys(collections.entries).map(k => <ui.MenuItem key={k} value={k}>{k.toUpperCase()}</ui.MenuItem>)}
               </ui.Select>
             </ui.FormControl>
-          </ui.Grid>
+          </ui.Box>
+
         }
-        {collections !== null && selectedCollection !== null &&
-          <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
-        }
-      </ui.Grid>
+        <ui.Box >
+          {collections !== null && selectedCollection !== null &&
+            <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
+          }
+        </ui.Box>
+      </ui.Stack>
     </ThemeProvider>
   );
 }

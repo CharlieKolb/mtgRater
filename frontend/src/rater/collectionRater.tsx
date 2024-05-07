@@ -6,6 +6,7 @@ import * as icons from '@mui/icons-material';
 import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../server/backend';
 import RatingBar from './ratingBar';
 import { ScryfallCard, ScryfallCardFace } from '@scryfall/api-types';
+import CollectionNavigator from './collectionNavigator';
 
 export type RaterProps = {
     collection: Collection;
@@ -133,15 +134,13 @@ export default function CollectionRater({ collection, language, backend, formats
     }, [collection, index])
 
     return (
-        <ui.Grid container item direction="column" alignItems="center" spacing={1}>
-            <ui.Grid item container direction="row" alignItems="center" justifyContent="center" spacing={2}>
-                <ui.Grid item>
+        <ui.Stack direction="row" alignItems="stretch">
+            <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={1} flexGrow={3}>
+                <ui.Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard}>
                         <icons.ArrowBackIos />
                     </ui.IconButton>
-                </ui.Grid>
-                <ui.Grid item>
-                    <ui.Container sx={{ position: "relative", width: "100%" }}>
+                    <ui.Box sx={{ position: "relative", }}>
                         <img className="card" alt="loading..." src={imageSource} />
                         {imageBacksideSource &&
                             <ui.IconButton
@@ -173,21 +172,17 @@ export default function CollectionRater({ collection, language, backend, formats
                                 <icons.ChangeCircle sx={{ fontSize: 80 }} />
                             </ui.IconButton>
                         }
-                    </ui.Container>
-                </ui.Grid>
-                <ui.Grid item>
+                    </ui.Box>
                     <ui.IconButton color="primary" onClick={handleNextCard}>
                         <icons.ArrowForwardIos />
                     </ui.IconButton>
-                </ui.Grid >
-            </ui.Grid >
-            <ui.Grid item container direction="column" justifyContent="center" spacing={1}>
-                {formats.map(x =>
-                    <RatingBar key={x} title={x} reveal={submitted} rating={card.rating_by_format[x]} onRatingChanged={(v) => card.rating_by_format[x].localRating = v} />
-                )
-                }
-            </ui.Grid>
-            <ui.Grid item>
+                </ui.Stack >
+                <ui.Stack direction="column" justifyContent="center" spacing={1}>
+                    {formats.map(x =>
+                        <RatingBar key={x} title={x} reveal={submitted} rating={card.rating_by_format[x]} onRatingChanged={(v) => card.rating_by_format[x].localRating = v} />
+                    )
+                    }
+                </ui.Stack>
                 <ui.Button onClick={() => {
                     if (submitted) {
                         for (const formatId in formats) {
@@ -203,7 +198,8 @@ export default function CollectionRater({ collection, language, backend, formats
                 }}>
                     {submitted ? "Clear" : "Reveal"}
                 </ui.Button>
-            </ui.Grid>
-        </ui.Grid >
+            </ui.Stack >
+            <CollectionNavigator collection={collection} />
+        </ui.Stack >
     )
 }
