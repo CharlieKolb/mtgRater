@@ -48,6 +48,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ui.Stack
+        direction="row"
         marginTop={5}
         marginLeft={2}
         gap={2}
@@ -69,7 +70,7 @@ function App() {
           </ui.Box>
 
         }
-        <ui.Box >
+        <ui.Box flexGrow={1}>
           {collections !== null && selectedCollection !== null &&
             <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
           }

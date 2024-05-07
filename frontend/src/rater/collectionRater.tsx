@@ -134,7 +134,7 @@ export default function CollectionRater({ collection, language, backend, formats
     }, [collection, index])
 
     return (
-        <ui.Stack direction="row" alignItems="stretch">
+        <ui.Stack direction="row" alignItems="center" justifyContent="center">
             <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={1} flexGrow={3}>
                 <ui.Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard}>
@@ -183,23 +183,25 @@ export default function CollectionRater({ collection, language, backend, formats
                     )
                     }
                 </ui.Stack>
-                <ui.Button onClick={() => {
-                    if (submitted) {
-                        for (const formatId in formats) {
-                            setLocalStorageRating(collectionId, formatId, card.set_code, card.card_code, null);
+                <ui.Box alignSelf="center">
+                    <ui.Button onClick={() => {
+                        if (submitted) {
+                            for (const formatId in formats) {
+                                setLocalStorageRating(collectionId, formatId, card.set_code, card.card_code, null);
+                            }
+                            setSubmitted(false);
                         }
-                        setSubmitted(false);
-                    }
-                    else {
-                        reportRating();
-                        setIndex(index); // hack to refresh local value in ratingBar
-                        setSubmitted(true);
-                    }
-                }}>
-                    {submitted ? "Clear" : "Reveal"}
-                </ui.Button>
+                        else {
+                            reportRating();
+                            setIndex(index); // hack to refresh local value in ratingBar
+                            setSubmitted(true);
+                        }
+                    }}>
+                        {submitted ? "Clear" : "Reveal"}
+                    </ui.Button>
+                </ui.Box>
             </ui.Stack >
-            <CollectionNavigator collection={collection} />
+            <CollectionNavigator collection={collection} targetIndex={index} onItemClick={(i) => { setIndex(i); }} />
         </ui.Stack >
     )
 }
