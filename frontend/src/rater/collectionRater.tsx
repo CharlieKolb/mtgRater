@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
@@ -6,7 +6,7 @@ import * as icons from '@mui/icons-material';
 import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../server/backend';
 import RatingBar from './ratingBar';
 import { ScryfallCard, ScryfallCardFace } from '@scryfall/api-types';
-import CollectionNavigator from './collectionNavigator';
+import CollectionNavigator from './collectionNavigator/collectionNavigator';
 
 export type RaterProps = {
     collection: Collection;
@@ -25,7 +25,6 @@ function makeUrl(collection: Collection, index: number, language: string) {
 }
 
 function hasAtLeastOneLocalRating(card: Card) {
-    console.log(`Card localRatings: ${Object.values(card.rating_by_format).map(x => x.localRating)}`)
     return Object.values(card.rating_by_format).some(x => x.localRating !== null);
 }
 
@@ -96,9 +95,7 @@ export default function CollectionRater({ collection, language, backend, formats
         let ignore = false;
 
         // set distribution
-        const card = collection.ratings[index];
-        console.log(`card is ${JSON.stringify(card)}`)
-        setSubmitted(hasAtLeastOneLocalRating(card));
+        setSubmitted(hasAtLeastOneLocalRating(collection.ratings[index]));
 
         // set image
         const url = makeUrl(collection, index, language);
@@ -131,7 +128,13 @@ export default function CollectionRater({ collection, language, backend, formats
         return () => {
             ignore = true;
         }
-    }, [collection, index])
+    }, [index])
+
+    const handleNavigationClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        setIndex(Number.parseInt(e.currentTarget.getAttribute("data-valueindex") || "0"));
+    }, [setIndex]);
+
+
 
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center">
@@ -186,8 +189,9 @@ export default function CollectionRater({ collection, language, backend, formats
                 <ui.Box alignSelf="center">
                     <ui.Button onClick={() => {
                         if (submitted) {
-                            for (const formatId in formats) {
+                            for (const formatId of formats) {
                                 setLocalStorageRating(collectionId, formatId, card.set_code, card.card_code, null);
+                                collection.ratings[index].rating_by_format[formatId].localRating = null;
                             }
                             setSubmitted(false);
                         }
@@ -201,7 +205,7 @@ export default function CollectionRater({ collection, language, backend, formats
                     </ui.Button>
                 </ui.Box>
             </ui.Stack >
-            <CollectionNavigator collection={collection} targetIndex={index} onItemClick={(i) => { setIndex(i); }} />
+            <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} />
         </ui.Stack >
     )
 }

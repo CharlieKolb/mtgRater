@@ -3,16 +3,16 @@ import React, { useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../server/backend';
-import RatingBar from './ratingBar';
+import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../../server/backend';
+import RatingBar from '../ratingBar';
 
 import { ScryfallCard } from "@scryfall/api-types";
-import { cp } from 'fs';
+import { CollectionNavigatorSegment } from './collectionNavigatorSegment';
 
 export type CollectionNavigatorProps = {
     collection: Collection;
     targetIndex: number;
-    onItemClick: (index: number) => void,
+    onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
 }
 
 function range(start: number, end_inclusive: number) {
@@ -35,29 +35,25 @@ export default function CollectionNavigator({ collection, targetIndex, onItemCli
 
     function buildList() {
         let firstCardOfSet = collection.ratings.map((x, i) => [x, i] as const).filter(([x, i]) => x.set_code !== collection.ratings.at(i - 1)?.set_code).map(x => x[1]);
+        if (firstCardOfSet.length === 0) firstCardOfSet = [0];
 
-        let res: any[] = [];
+        let res = [];
         for (let i = 0; i < firstCardOfSet.length; i++) {
             const startIndex = firstCardOfSet[i];
             const endIndex = (firstCardOfSet[i + 1] - 1) || (collection.ratings.length - 1);
-
             let firstCard = collection.ratings[startIndex];
             res.push((
-                <li key={`section-${firstCard.set_code.toUpperCase()}`}>
+                <li key={`section-${firstCard.set_code}`}>
                     <ul>
-                        <ui.ListSubheader>{firstCard.set_code.toUpperCase()}</ui.ListSubheader>
-                        {range(startIndex, endIndex).map(i => {
-                            const card = collection.ratings[i];
-                            const cardInfo = cardDetails.get(card.set_code + card.card_code);
-
-                            return (<ui.ListItemButton
-                                key={`item-${card.set_code.toUpperCase()}-${card.set_code}${card.card_code}`}
-                                autoFocus={targetIndex === i}
-                                selected={targetIndex === i}
-                                onClick={() => { onItemClick(i); }}>
-                                <ui.ListItemText primary={`${cardInfo?.name}`} />
-                            </ui.ListItemButton >);
-                        })}
+                        <CollectionNavigatorSegment
+                            cardDetails={cardDetails}
+                            collection={collection}
+                            startIndex={startIndex}
+                            endIndex={endIndex}
+                            targetIndex={targetIndex}
+                            headerName={firstCard.set_code.toUpperCase()}
+                            onItemClick={onItemClick}
+                        />
                     </ul>
                 </li>
             ));
@@ -69,7 +65,6 @@ export default function CollectionNavigator({ collection, targetIndex, onItemCli
         <ui.List
             sx={{
                 justifyItems: "right",
-                // flexGrow: 1,
                 height: "100vh",
                 position: "relative",
                 marginTop: -5,

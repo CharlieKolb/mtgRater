@@ -11,7 +11,7 @@ export type RatingBarProps = {
     title: string;
     rating: Rating;
     reveal: boolean;
-    onRatingChanged: (rating: CardRating | null) => void;
+    onRatingChanged: (rating: CardRating) => void;
 }
 
 function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating): Distribution {
@@ -26,7 +26,7 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
 
 
     function handleRatingChange(value: string) {
-        let res: CardRating | null = null;
+        let res: CardRating = 1;
         switch (value) {
             case "1": res = 1; break;
             case "2": res = 2; break;

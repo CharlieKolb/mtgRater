@@ -98,7 +98,6 @@ async function fetchCardInfo(collection: CollectionResponse): Promise<Map<string
         query = x.next_page;
         for (const card of (x.data as ScryfallCard.Any[])) {
             const { set, collector_number } = card;
-            console.log(`key is ${set + collector_number}`)
             res.set(set + collector_number, card);
 
         }
