@@ -21,8 +21,10 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
 }
 
 export default function RatingBar({ title, reveal, rating, onRatingChanged }: RatingBarProps) {
+    console.log(`New rating: ${JSON.stringify(rating)}, new reveal: ${reveal}`)
+
     const distribution = toDistribution(rating);
-    const [ratingValue, setRatingValue] = useState<CardRating | null>(rating.localRating);
+    // const [ratingValue, setRatingValue] = useState<CardRating | null>(rating.localRating);
 
 
     function handleRatingChange(value: string) {
@@ -36,13 +38,13 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
             default: console.log(`Received unexpected rating ${value}`); return;
         }
 
-        setRatingValue(res);
+        // setRatingValue(res);
         onRatingChanged(res);
     }
 
-    useEffect(() => {
-        setRatingValue(rating.localRating);
-    }, [rating])
+    // useEffect(() => {
+    //     setRatingValue(rating.localRating);
+    // }, [rating])
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n); // Start with 1 to avoid div by 0
@@ -54,7 +56,7 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
             <ui.Tooltip title={distribution[index]}>
                 < ui.Box
                     key={index}
-                    bgcolor={ratingValue === index + 1 ? "secondary.main" : "primary.main"
+                    bgcolor={rating.localRating === index + 1 ? "secondary.main" : "primary.main"
                     }
                     sx={{ /*"fontSize": Math.min(diameter - 3, 25) + "px",*/
                         ...shapeStyles, ...shapeCircleStyles

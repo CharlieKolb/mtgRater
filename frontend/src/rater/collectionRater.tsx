@@ -52,7 +52,9 @@ export default function CollectionRater({ collection, language, backend, formats
             // If the card has no local rating yet it means nothing submitted the chosen value to the backend yet
             reportRating();
         }
-
+        // set submitted here rather than reactive on new index to avoid rendering issue in child component
+        // should either remove clearing feature or have explicit localstorage "cleared" state for each collection/set/card combo regardless of specific value
+        setSubmitted(hasAtLeastOneLocalRating(collection.ratings[newIndex]));
         setIndex(newIndex);
     }
 
@@ -95,7 +97,7 @@ export default function CollectionRater({ collection, language, backend, formats
         let ignore = false;
 
         // set distribution
-        setSubmitted(hasAtLeastOneLocalRating(collection.ratings[index]));
+        // setSubmitted(hasAtLeastOneLocalRating(collection.ratings[index]));
 
         // set image
         const url = makeUrl(collection, index, language);
@@ -187,7 +189,7 @@ export default function CollectionRater({ collection, language, backend, formats
                     }
                 </ui.Stack>
                 <ui.Box alignSelf="center">
-                    <ui.Button onClick={() => {
+                    {<ui.Button onClick={() => {
                         if (submitted) {
                             for (const formatId of formats) {
                                 setLocalStorageRating(collectionId, formatId, card.set_code, card.card_code, null);
@@ -202,7 +204,7 @@ export default function CollectionRater({ collection, language, backend, formats
                         }
                     }}>
                         {submitted ? "Clear" : "Reveal"}
-                    </ui.Button>
+                    </ui.Button>}
                 </ui.Box>
             </ui.Stack >
             <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} />
