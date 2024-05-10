@@ -72,7 +72,7 @@ function App() {
         }
         <ui.Box flexGrow={1}>
           {collections !== null && selectedCollection !== null &&
-            <Rater collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
+            <Rater key={selectedCollection.collection_id} collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
           }
         </ui.Box>
       </ui.Stack>

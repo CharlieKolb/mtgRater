@@ -7,6 +7,7 @@ import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution
 import RatingBar from './ratingBar';
 import { ScryfallCard, ScryfallCardFace } from '@scryfall/api-types';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
+import { resolveImage } from '../util/scryfall_util';
 
 export type RaterProps = {
     collection: Collection;
@@ -15,7 +16,6 @@ export type RaterProps = {
     formats: string[];
 }
 
-const DEFAULT_IMAGE = "https://cards.scryfall.io/normal/front/5/a/5aa90ab6-2686-4462-8725-5d4370c05437.jpg?1663738897"
 
 
 function makeUrl(collection: Collection, index: number, language: string) {
@@ -97,43 +97,26 @@ export default function CollectionRater({ collection, language, backend, formats
         let ignore = false;
 
         // set distribution
-        // setSubmitted(hasAtLeastOneLocalRating(collection.ratings[index]));
+        setSubmitted(hasAtLeastOneLocalRating(collection.ratings[index]));
 
-        // set image
-        const url = makeUrl(collection, index, language);
-        const prevUrl = makeUrl(collection, (index - 1 + collection.ratings.length) % collection.ratings.length, language);
-        const nextUrl = makeUrl(collection, (index + 1) % collection.ratings.length, language);
-        async function resolveImage(url: string): Promise<string[]> {
-            const cardDetail = (await collection.cardDetails).get(card.set_code + card.card_code);
-            if (!ignore && cardDetail) {
-                if ("image_uris" in cardDetail) {
-                    return [cardDetail.image_uris?.normal || DEFAULT_IMAGE];
-                }
-
-                if ('card_faces' in cardDetail) {
-                    return (cardDetail as ScryfallCard.AnyDoubleSidedSplit)['card_faces'].map(x => x.image_uris?.normal || DEFAULT_IMAGE);
-                }
-                console.error("Scryfall object had neither card_faces nor image_uris");
-                return [""];
-            }
-            return Promise.reject("Outdated");
-        }
         let prevImage = new Image();
         let nextImage = new Image();
-        resolveImage(url).then((x) => {
-            setImageSource(x[0]);
-            setImageBacksideSource(x[1]);
+        resolveImage(collection, card).then((x) => {
+            if (!ignore) {
+                setImageSource(x[0]);
+                setImageBacksideSource(x[1]);
+            }
         });
-        resolveImage(prevUrl).then(s => prevImage.src = s[0]);
-        resolveImage(nextUrl).then(s => nextImage.src = s[0]);
+        resolveImage(collection, collection.ratings[(index + 1) % collection.ratings.length]).then(s => prevImage.src = s[0]);
+        resolveImage(collection, collection.ratings[(index - 1 + collection.ratings.length) % collection.ratings.length]).then(s => nextImage.src = s[0]);
 
         return () => {
             ignore = true;
         }
-    }, [index])
+    }, [collection, index])
 
     const handleNavigationClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        setIndex(Number.parseInt(e.currentTarget.getAttribute("data-valueindex") || "0"));
+        handleCardChanged(Number.parseInt(e.currentTarget.getAttribute("data-valueindex") || "0"));
     }, [setIndex]);
 
 
@@ -143,7 +126,7 @@ export default function CollectionRater({ collection, language, backend, formats
             <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={1} flexGrow={3}>
                 <ui.Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard}>
-                        <icons.ArrowBackIos />
+                        <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
                         <img className="card" alt="loading..." src={imageSource} />
@@ -188,16 +171,9 @@ export default function CollectionRater({ collection, language, backend, formats
                     )
                     }
                 </ui.Stack>
-                <ui.Box alignSelf="center">
+                <ui.Box alignSelf="center" style={{ visibility: submitted ? 'hidden' : 'visible' }}>
                     {<ui.Button onClick={() => {
-                        if (submitted) {
-                            for (const formatId of formats) {
-                                setLocalStorageRating(collectionId, formatId, card.set_code, card.card_code, null);
-                                collection.ratings[index].rating_by_format[formatId].localRating = null;
-                            }
-                            setSubmitted(false);
-                        }
-                        else {
+                        if (!submitted) {
                             reportRating();
                             setIndex(index); // hack to refresh local value in ratingBar
                             setSubmitted(true);
@@ -207,6 +183,7 @@ export default function CollectionRater({ collection, language, backend, formats
                     </ui.Button>}
                 </ui.Box>
             </ui.Stack >
+            <ui.Divider orientation="vertical" flexItem />
             <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} />
         </ui.Stack >
     )

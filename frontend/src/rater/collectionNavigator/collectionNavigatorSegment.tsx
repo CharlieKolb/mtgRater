@@ -40,17 +40,10 @@ export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentP
                     index={i}
                     autoFocus={targetIndex === i}
                     selected={targetIndex === i}
-                    // autoFocus={false}
-                    // selected={false}
                     onItemClick={onItemClick}
-                    text={cardInfo?.name || ""}
+                    cardInfo={cardInfo}
                 />);
             })
         }</div>;
-}
-    // , (prev, next) => {
-    //     console.log("Memo check Segment");
-    //     return Object.is(prev, next);
-    // }
-);
+});
 

@@ -68,7 +68,8 @@ export default function CollectionNavigator({ collection, targetIndex, onItemCli
                 height: "100vh",
                 position: "relative",
                 marginTop: -5,
-                maxWidth: 360,
+                display: "block",
+                // display: "flex", // @TODO(ckolb): this happens to create a really cool "by segment" mode that should be expanded upon
                 bgcolor: 'background.paper',
                 overflow: 'auto',
                 '& ul': { padding: 0 },
