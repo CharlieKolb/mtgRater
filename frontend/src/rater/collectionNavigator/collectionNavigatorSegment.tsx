@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import * as ui from '@mui/material';
 import { Collection } from '../../server/backend';

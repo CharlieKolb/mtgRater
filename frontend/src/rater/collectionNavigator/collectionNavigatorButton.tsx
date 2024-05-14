@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 
 import * as ui from '@mui/material';
-import { ScryfallCard, ScryfallColorLike, ScryfallColors } from '@scryfall/api-types';
+import { ScryfallCard, ScryfallColors } from '@scryfall/api-types';
 import { resolveImageFromInfo } from '../../util/scryfall_util';
 
 

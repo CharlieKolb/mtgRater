@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import './App.css';
 import Rater from './rater/collectionRater';
 
 import * as ui from '@mui/material';
-import * as icons from '@mui/icons-material';
 
 import { ThemeProvider } from "@mui/material/styles"
 import theme from './theme'
@@ -49,12 +48,12 @@ function App() {
       <CssBaseline />
       <ui.Stack
         direction="row"
-        marginTop={5}
+        // marginTop={5}
         marginLeft={2}
         gap={2}
       >
         {collections !== null &&
-          <ui.Box>
+          <ui.Box marginTop={5}>
             <ui.FormControl>
               <ui.InputLabel id="set-select-label">Set</ui.InputLabel>
               <ui.Select
@@ -68,8 +67,8 @@ function App() {
               </ui.Select>
             </ui.FormControl>
           </ui.Box>
-
         }
+        <ui.Divider orientation="vertical" flexItem />
         <ui.Box flexGrow={1}>
           {collections !== null && selectedCollection !== null &&
             <Rater key={selectedCollection.collection_id} collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />

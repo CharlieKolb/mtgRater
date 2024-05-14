@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
 import * as ui from '@mui/material';
-import * as icons from '@mui/icons-material';
 
-import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../../server/backend';
-import RatingBar from '../ratingBar';
+import { Collection } from '../../server/backend';
 
 import { ScryfallCard } from "@scryfall/api-types";
 import { CollectionNavigatorSegment } from './collectionNavigatorSegment';
@@ -15,14 +13,6 @@ export type CollectionNavigatorProps = {
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
     onImgOverride: (img: string | undefined) => void;
 
-}
-
-function range(start: number, end_inclusive: number) {
-    let arr = [];
-    while (start <= end_inclusive) {
-        arr.push(start++);
-    }
-    return arr;
 }
 
 export default function CollectionNavigator(props: CollectionNavigatorProps) {
@@ -67,7 +57,6 @@ export default function CollectionNavigator(props: CollectionNavigatorProps) {
                 justifyItems: "right",
                 height: "100vh",
                 position: "relative",
-                marginTop: -5,
                 display: "block",
                 // display: "flex", // @TODO(ckolb): this happens to create a really cool "by segment" mode that should be expanded upon
                 bgcolor: 'background.paper',

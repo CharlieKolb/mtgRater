@@ -1,9 +1,4 @@
-import React, { useEffect, useState } from 'react';
-
 import * as ui from '@mui/material';
-import * as icons from '@mui/icons-material';
-
-
 
 import { CardRating, Distribution, Rating } from "../server/backend";
 
@@ -21,11 +16,7 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
 }
 
 export default function RatingBar({ title, reveal, rating, onRatingChanged }: RatingBarProps) {
-    console.log(`New rating: ${JSON.stringify(rating)}, new reveal: ${reveal}`)
-
     const distribution = toDistribution(rating);
-    // const [ratingValue, setRatingValue] = useState<CardRating | null>(rating.localRating);
-
 
     function handleRatingChange(value: string) {
         let res: CardRating = 1;
@@ -38,13 +29,9 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
             default: console.log(`Received unexpected rating ${value}`); return;
         }
 
-        // setRatingValue(res);
         onRatingChanged(res);
     }
 
-    // useEffect(() => {
-    //     setRatingValue(rating.localRating);
-    // }, [rating])
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n); // Start with 1 to avoid div by 0
@@ -88,7 +75,6 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
                         {makeDistributionBox(3)}
                         {makeDistributionBox(4)}
                     </ui.Grid > :
-                    // <ui.Grid minHeight={75} maxHeight={75}>
                     <ui.FormControl>
                         <ui.RadioGroup
                             row

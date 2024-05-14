@@ -3,9 +3,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { Card, RatingsPostRequest, Collection, CardRating, Distribution, Rating, setLocalStorageRating } from '../server/backend';
+import Backend, { Card, Collection } from '../server/backend';
 import RatingBar from './ratingBar';
-import { ScryfallCard, ScryfallCardFace } from '@scryfall/api-types';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfall_util';
 import { useDebounce } from 'use-debounce';
@@ -20,12 +19,6 @@ export type RaterProps = {
 }
 
 
-
-function makeUrl(collection: Collection, index: number, language: string) {
-    const { set_code, card_code } = collection.ratings[index];
-
-    return `https://api.scryfall.com/cards/${set_code}/${card_code}/${language}`;
-}
 
 function hasAtLeastOneLocalRating(card: Card) {
     return Object.values(card.rating_by_format).some(x => x.localRating !== null);
@@ -129,7 +122,7 @@ export default function CollectionRater({ collection, language, backend, formats
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center">
             <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={1} flexGrow={3}>
-                <ui.Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>
+                <ui.Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard}>
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
