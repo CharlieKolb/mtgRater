@@ -47,23 +47,22 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ui.Stack
-        direction="row"
+        direction={{ xs: "column", md: "row" }}
         // marginTop={5}
-        marginLeft={2}
-        gap={2}
+        marginLeft={{ xs: 0, md: 2 }}
+        gap={{ xs: 0, md: 2 }}
+        maxWidth="100%"
+        width={{ xs: "auto", md: "auto" }}
       >
         {collections !== null &&
-          <ui.Box marginTop={5}>
-            <ui.FormControl>
-              <ui.InputLabel id="set-select-label">Set</ui.InputLabel>
+          <ui.Box marginTop={{ xs: 0, md: 5 }} height="2" justifyContent="stretch" >
+            <ui.FormControl sx={{ display: "flex" }} >
               <ui.Select
-                labelId="set-select-label"
                 id="set-select"
                 value={dropdownKey}
-                label="Set"
                 onChange={(e, v) => setDropdownKey(e.target.value as string)}
               >
-                {Object.keys(collections.entries).map(k => <ui.MenuItem key={k} value={k}>{k.toUpperCase()}</ui.MenuItem>)}
+                {Object.entries(collections.entries).map(e => <ui.MenuItem key={e[0]} value={e[0]}>{e[0].toUpperCase()}</ui.MenuItem>)}
               </ui.Select>
             </ui.FormControl>
           </ui.Box>
@@ -75,7 +74,7 @@ function App() {
           }
         </ui.Box>
       </ui.Stack>
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
 

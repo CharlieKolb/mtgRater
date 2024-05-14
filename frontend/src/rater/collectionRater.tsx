@@ -120,14 +120,14 @@ export default function CollectionRater({ collection, language, backend, formats
 
 
     return (
-        <ui.Stack direction="row" alignItems="center" justifyContent="center">
-            <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={1} flexGrow={3}>
-                <ui.Stack direction="row" alignItems="center" justifyContent="center" spacing={2}>
+        <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
+            <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={{ xs: 0, md: 1 }} flexGrow={3}>
+                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems={{ xs: "stretch", md: "center" }} justifyContent="center" width="100%" maxWidth="100%" spacing={{ xs: 0, md: 2 }}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard}>
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
-                        <img className="card" alt="loading..." src={debouncedImgOverride || imageSource} />
+                        <img className="card" alt="loading..." src={debouncedImgOverride || imageSource} style={{ maxWidth: "100%" }} />
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
