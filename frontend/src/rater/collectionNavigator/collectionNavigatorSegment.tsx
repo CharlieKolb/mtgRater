@@ -15,6 +15,7 @@ export type CollectionNavigatorSegmentProps = {
     startIndex: number;
     endIndex: number;
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+    onImgOverride: (img: string | undefined) => void;
 }
 
 function range(start: number, end_inclusive: number) {
@@ -26,7 +27,7 @@ function range(start: number, end_inclusive: number) {
 }
 
 
-export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentProps>(({ collection, headerName, targetIndex, startIndex, endIndex, cardDetails, onItemClick }: CollectionNavigatorSegmentProps) => {
+export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentProps>(({ collection, headerName, targetIndex, startIndex, endIndex, cardDetails, onItemClick, onImgOverride }: CollectionNavigatorSegmentProps) => {
 
     return <div><ui.ListSubheader>{headerName}</ui.ListSubheader>
         {
@@ -41,6 +42,7 @@ export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentP
                     autoFocus={targetIndex === i}
                     selected={targetIndex === i}
                     onItemClick={onItemClick}
+                    onImgOverride={onImgOverride}
                     cardInfo={cardInfo}
                 />);
             })

@@ -13,6 +13,8 @@ export type CollectionNavigatorProps = {
     collection: Collection;
     targetIndex: number;
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
+    onImgOverride: (img: string | undefined) => void;
+
 }
 
 function range(start: number, end_inclusive: number) {
@@ -23,8 +25,8 @@ function range(start: number, end_inclusive: number) {
     return arr;
 }
 
-export default function CollectionNavigator({ collection, targetIndex, onItemClick }: CollectionNavigatorProps) {
-
+export default function CollectionNavigator(props: CollectionNavigatorProps) {
+    const collection = props.collection;
     const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard.Any>>(new Map());
 
     useEffect(() => {
@@ -47,12 +49,10 @@ export default function CollectionNavigator({ collection, targetIndex, onItemCli
                     <ul>
                         <CollectionNavigatorSegment
                             cardDetails={cardDetails}
-                            collection={collection}
                             startIndex={startIndex}
                             endIndex={endIndex}
-                            targetIndex={targetIndex}
                             headerName={firstCard.set_code.toUpperCase()}
-                            onItemClick={onItemClick}
+                            {...props}
                         />
                     </ul>
                 </li>

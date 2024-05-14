@@ -37,6 +37,7 @@ export default function CollectionRater({ collection, language, backend, formats
 
     const [imageSource, setImageSource] = useState("")
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
+    const [imgOverride, setImgOverride] = useState<string | undefined>(undefined);
 
     const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(card));
 
@@ -129,7 +130,7 @@ export default function CollectionRater({ collection, language, backend, formats
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
-                        <img className="card" alt="loading..." src={imageSource} />
+                        <img className="card" alt="loading..." src={imgOverride || imageSource} />
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
@@ -184,7 +185,7 @@ export default function CollectionRater({ collection, language, backend, formats
                 </ui.Box>
             </ui.Stack >
             <ui.Divider orientation="vertical" flexItem />
-            <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} />
+            <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />
         </ui.Stack >
     )
 }

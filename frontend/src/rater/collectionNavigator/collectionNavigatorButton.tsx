@@ -12,6 +12,7 @@ export type CollectionNavigatorButtonProps = {
     index: number;
     cardInfo: ScryfallCard.Any | undefined;
     onItemClick: React.MouseEventHandler<HTMLDivElement> | undefined;
+    onImgOverride: (img: string | undefined) => void;
 
 }
 
@@ -45,7 +46,7 @@ function getColorIdentityCode(cardInfo: ScryfallCard.Any | undefined): string | 
     return null
 }
 
-export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ autoFocus, selected, index, cardInfo, onItemClick }: CollectionNavigatorButtonProps) => {
+export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ autoFocus, selected, index, cardInfo, onItemClick, onImgOverride }: CollectionNavigatorButtonProps) => {
     const colorCode = getColorIdentityCode(cardInfo);
     const title = cardInfo?.name || "";
 
@@ -58,11 +59,13 @@ export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonPro
         }
     }, [cardInfo])
 
-    return (<ui.Tooltip title={<img src={imageSource} />}><ui.ListItemButton
+    return (<ui.ListItemButton
         data-valueindex={index}
         autoFocus={autoFocus}
         selected={selected}
         onClick={onItemClick}
+        onMouseEnter={() => onImgOverride(imageSource)}
+        onMouseLeave={() => onImgOverride(undefined)}
         sx={{
             lineHeight: "1.7em",
             height: "1.7em",
@@ -85,7 +88,7 @@ export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonPro
             }}
         />}
         <ui.ListItemText primary={title} />
-    </ui.ListItemButton ></ui.Tooltip>);
+    </ui.ListItemButton >);
 }
     // , (x, y) => { console.log("Memo check Button"); return Object.is(x, y); }
 );
