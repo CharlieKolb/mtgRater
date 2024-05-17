@@ -51,6 +51,10 @@ export default function CollectionNavigator(props: CollectionNavigatorProps) {
         return res;
     }
 
+    const theme = ui.useTheme();
+    const isDesktop = ui.useMediaQuery(theme.breakpoints.up('md'));
+
+
     return (
         <ui.List
             sx={{
@@ -59,6 +63,7 @@ export default function CollectionNavigator(props: CollectionNavigatorProps) {
                 position: "relative",
                 // display: "flex", // @TODO(ckolb): this happens to create a really cool "by segment" mode that should be expanded upon
                 bgcolor: 'background.paper',
+                width: isDesktop ? "22%" : "100%",
                 overflow: 'auto',
                 '& ul': { padding: 0 },
 

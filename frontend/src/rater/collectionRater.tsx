@@ -126,7 +126,7 @@ export default function CollectionRater({ collection, language, backend, formats
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
             <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={{ xs: 0, md: 1 }} flexGrow={3}>
-                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" width="100%" maxWidth="100%" spacing={{ xs: 0, md: 2 }}>
+                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" width="100%" maxWidth="100%" minWidth="70%" spacing={{ xs: 0, md: 2 }}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
