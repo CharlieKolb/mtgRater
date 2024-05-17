@@ -47,6 +47,8 @@ services:
     networks:
       - client-side
       - server-side
+    volumes:
+      - ~/backups/mtgRater:/etc/data/mtgRaterBackups
     environment:
       - PG_DBNAME=postgres
       - PG_HOST=db
@@ -90,3 +92,4 @@ networks:
 volumes:
   backend-cache: {}
   db-data: {}
+  backups: {}
