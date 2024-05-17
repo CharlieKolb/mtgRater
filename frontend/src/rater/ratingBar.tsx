@@ -93,6 +93,7 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
         sx={{
             display: "flex",
             flexShrink: "1",
+            margin: "0.5px",
             maxWidth: "90%",
             justifySelf: "center",
         }}

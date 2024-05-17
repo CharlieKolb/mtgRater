@@ -57,7 +57,6 @@ export default function CollectionNavigator(props: CollectionNavigatorProps) {
                 justifyItems: "right",
                 height: "100vh",
                 position: "relative",
-                display: { xs: "none", md: "block" },
                 // display: "flex", // @TODO(ckolb): this happens to create a really cool "by segment" mode that should be expanded upon
                 bgcolor: 'background.paper',
                 overflow: 'auto',

@@ -38,6 +38,8 @@ export default function CollectionRater({ collection, language, backend, formats
 
     const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(card));
 
+    const [showMobileNavigator, setShowMobileNavigator] = useState(false);
+
 
 
     useEffect(() => {
@@ -117,13 +119,15 @@ export default function CollectionRater({ collection, language, backend, formats
         handleCardChanged(Number.parseInt(e.currentTarget.getAttribute("data-valueindex") || "0"));
     }, [setIndex]);
 
+    const theme = ui.useTheme();
+    const isDesktop = ui.useMediaQuery(theme.breakpoints.up('md'));
 
 
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
             <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={{ xs: 0, md: 1 }} flexGrow={3}>
-                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems={{ xs: "stretch", md: "center" }} justifyContent="center" width="100%" maxWidth="100%" spacing={{ xs: 0, md: 2 }}>
-                    <ui.IconButton color="primary" onClick={handlePreviousCard}>
+                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" width="100%" maxWidth="100%" spacing={{ xs: 0, md: 2 }}>
+                    <ui.IconButton color="primary" onClick={handlePreviousCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
@@ -159,7 +163,7 @@ export default function CollectionRater({ collection, language, backend, formats
                             </ui.IconButton>
                         }
                     </ui.Box>
-                    <ui.IconButton color="primary" onClick={handleNextCard}>
+                    <ui.IconButton color="primary" onClick={handleNextCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowForwardIos />
                     </ui.IconButton>
                 </ui.Stack >
@@ -169,20 +173,40 @@ export default function CollectionRater({ collection, language, backend, formats
                     )
                     }
                 </ui.Stack>
-                <ui.Box alignSelf="center" style={{ visibility: submitted ? 'hidden' : 'visible' }}>
-                    {<ui.Button onClick={() => {
+                <ui.Stack direction="row" alignItems="center" justifyItems="stretch" alignSelf={isDesktop ? "center" : "stretch"}>
+                    {!isDesktop &&
+                        <React.Fragment>
+                            <ui.Button fullWidth onClick={(e) => setShowMobileNavigator(!showMobileNavigator)}>Browse</ui.Button>
+                            <ui.Drawer
+                                anchor="right"
+                                open={showMobileNavigator}
+                                onClose={() => setShowMobileNavigator(!showMobileNavigator)}
+                            >
+                                <CollectionNavigator
+                                    collection={collection}
+                                    targetIndex={index}
+                                    onItemClick={(e) => {
+                                        handleNavigationClick(e);
+                                        setShowMobileNavigator(false);
+                                    }}
+                                    onImgOverride={setImgOverride} />
+                            </ui.Drawer>
+                        </React.Fragment>}
+                    <ui.Button fullWidth={!isDesktop} onClick={() => {
                         if (!submitted) {
                             reportRating();
                             setIndex(index); // hack to refresh local value in ratingBar
                             setSubmitted(true);
+                        } else {
+                            handleNextCard();
                         }
                     }}>
-                        {submitted ? "Clear" : "Reveal"}
-                    </ui.Button>}
-                </ui.Box>
+                        {submitted ? "Next" : "Reveal"}
+                    </ui.Button>
+                </ui.Stack>
             </ui.Stack >
             <ui.Divider orientation="vertical" flexItem />
-            <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />
+            {isDesktop && <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />}
         </ui.Stack >
     )
 }
