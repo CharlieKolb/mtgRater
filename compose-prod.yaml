@@ -1,0 +1,92 @@
+# Comments are provided throughout this file to help you get started.
+# If you need more help, visit the Docker Compose reference guide at
+# https://docs.docker.com/go/compose-spec-reference/
+
+# Here the instructions define your application as a service called "server".
+# This service is built from the Dockerfile in the current directory.
+# You can add other services your application may depend on here, such as a
+# database or a cache. For examples, see the Awesome Compose repository:
+# https://github.com/docker/awesome-compose
+services:
+  proxy:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf # note that this is nginx-prod.conf in the repo, to be renamed on transfer to prod server
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    networks:
+      - client-side
+      - server-side
+    depends_on:
+      - server
+      - frontend
+
+  # Enable to renew cert
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   networks:
+  #     - client-side
+  #     - server-side
+  #   volumes:
+  #     - ./certbot/www/:/var/www/certbot/:rw
+  #     - ./certbot/conf/:/etc/letsencrypt/:rw
+
+  frontend:
+    image: charliekolb/private_repository:mtgRaterFrontend
+    networks:
+      - client-side
+    ports:
+      - 3000:3000
+
+  server:
+    image: charliekolb/private_repository:mtgRaterBackend
+    networks:
+      - client-side
+      - server-side
+    environment:
+      - PG_DBNAME=postgres
+      - PG_HOST=db
+      - PG_USER=postgres
+      - PG_PASSWORD=insecure
+      - ADDRESS=0.0.0.0:8000
+      - RUST_LOG=debug
+      - DATABASE_URL=postgres://postgres:insecure@db:5432/postgres
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres
+    restart: always
+    user: postgres
+    volumes:
+      # - ./db/queries/migrations/0001_ratings_up.sql:/docker-entrypoint-initdb.d/0001_ratings_up.sql
+      # - ./db/queries/migrations/0002_cards_up.sql:/docker-entrypoint-initdb.d/0002_cards_up.sql
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOSTNAME=db
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=insecure
+    ports:
+      - 5432
+    networks:
+      - server-side
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+networks:
+  client-side: {}
+  server-side: {}
+
+volumes:
+  backend-cache: {}
+  db-data: {}
