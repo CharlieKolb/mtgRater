@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 
 import * as ui from '@mui/material';
-import { ScryfallCard, ScryfallColors } from '@scryfall/api-types';
+import { ScryfallCard, ScryfallColorLike, ScryfallColors } from '@scryfall/api-types';
 import { resolveImageFromInfo } from '../../util/scryfall_util';
 
 
@@ -20,13 +20,19 @@ function getColorIdentityCode(cardInfo: ScryfallCard.Any | undefined): string | 
     if (cardInfo === undefined) return null;
 
     let colors: ScryfallColors | null = null;
-    if ("colors" in cardInfo) {
+    if ("colors" in cardInfo && cardInfo.colors.length > 0) {
         colors = cardInfo.colors;
     }
+    else if (cardInfo.mana_cost !== undefined) {
+        // This affects e.g. devoid cards. Note that cards without mana cost, e.g. lands have `mana_cost=""`
+        colors = Array.from(new Set(cardInfo.mana_cost.split("").filter(x => "WUBRG".match(x)))) as unknown as ScryfallColorLike[];
+    }
     else {
+        // mostly theoretical fallback
         colors = cardInfo.color_identity;
     }
-    if (colors.length === 0 && "type_line" in cardInfo && cardInfo.type_line.match("Artifact")) {
+    // Workaround to support non-lands with generic mana cost, e.g. Sol Ring
+    if (colors.length === 0 && "type_line" in cardInfo && !cardInfo.type_line.match("Land")) {
         colors = ["C"];
     }
 
