@@ -133,7 +133,7 @@ export default function CollectionRater(props: RaterProps) {
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
-                        <img className="card" alt="loading..." src={debouncedImgOverride || imageSource} style={{ maxWidth: "100%" }} />
+                        <img className="card" alt="loading..." src={debouncedImgOverride || imageSource} style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} />
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
