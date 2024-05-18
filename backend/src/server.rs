@@ -1,15 +1,22 @@
-use std::{collections::HashMap, future::Future};
+use std::{
+    collections::HashMap,
+    future::Future,
+    os::unix::net::SocketAddr,
+    sync::{Arc, Mutex, RwLock},
+};
 
 use anyhow::anyhow;
 use axum::{
-    extract::{Query, State},
+    extract::{ConnectInfo, Query, State},
     http::StatusCode,
     response::IntoResponse,
     routing::get,
     Json, Router,
 };
+use axum_client_ip::{SecureClientIp, SecureClientIpSource};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
+use tracing::{info, warn};
 
 use crate::{
     db::lib::{self, RatingsValue, SchemaRatings},
@@ -21,6 +28,7 @@ use crate::{
 pub struct AppState {
     pub pool: Pool<Postgres>,
     pub server_data: ServerData,
+    pub post_rating_request_cache: Arc<Mutex<lru::LruCache<String, usize>>>,
 }
 
 #[derive(Deserialize)]
@@ -62,6 +70,7 @@ fn parse_rating(rating_raw: &String) -> Result<RatingsValue, anyhow::Error> {
 }
 
 pub async fn post_ratings(
+    ip: SecureClientIp,
     State(state): State<AppState>,
     Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
     Query(RatingsPostExtractor {
@@ -71,6 +80,40 @@ pub async fn post_ratings(
         format_id,
     }): Query<RatingsPostExtractor>,
 ) -> impl IntoResponse {
+    // Cache combination of all inputs besides the actual rating to prevent ruining our data from repeated malicious POST requests
+    // Note that the current implementation does not block to acquire a lock and prefers to handle the request. This is an intended tradeoff to avoid slowing the server during high organic traffic.
+    warn!("IP is {}", ip.0.to_string());
+
+    {
+        let cache_key = format!(
+            "{}{}{}{}{}",
+            ip.0.to_string(),
+            collection_id,
+            set_code,
+            card_code,
+            format_id
+        );
+        let arc = state.post_rating_request_cache.clone();
+        let mutex = arc.try_lock();
+        if let Ok(mut cache) = mutex {
+            let elem = cache.get(&cache_key);
+            let res = match elem {
+                None => Some(1),
+                Some(x) if *x < state.server_data.collections.formats.len() => Some(*x + 1),
+                _ => None,
+            };
+            if let Some(x) = res {
+                cache.push(cache_key, x);
+            } else {
+                return Err((
+                    StatusCode::TOO_MANY_REQUESTS,
+                    "Please report if you saw this error during intended usage of the website."
+                        .into(),
+                ));
+            }
+        }
+    }
+
     let rating = match parse_rating(&rating_raw) {
         Ok(x) => x,
         Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
@@ -121,7 +164,6 @@ pub async fn get_ratings(
     State(state): State<AppState>,
     Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
 ) -> impl IntoResponse {
-    // @TODO(ckolb): verify collection_id is in existing collections
     let collection = match state.server_data.collections.entries.get(&collection_id) {
         Some(x) => x,
         None => return Err((StatusCode::BAD_REQUEST, collection_id)),

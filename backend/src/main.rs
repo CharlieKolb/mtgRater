@@ -1,6 +1,13 @@
-use std::{collections::HashMap, env, fs};
+use std::{
+    collections::HashMap,
+    env, fs,
+    net::SocketAddr,
+    sync::{Arc, Mutex},
+};
 
-use axum::{routing::get, Router};
+use axum::{routing::get, Router, ServiceExt};
+use axum_client_ip::SecureClientIpSource;
+use lru::LruCache;
 use server::AppState;
 use sqlx::postgres::{PgListener, PgPoolOptions};
 use tracing::{info, Instrument};
@@ -55,6 +62,9 @@ async fn main() -> Result<(), anyhow::Error> {
     let app_state = AppState {
         pool: _pool,
         server_data,
+        post_rating_request_cache: Arc::new(Mutex::new(LruCache::new(
+            std::num::NonZeroUsize::new(20000).unwrap(),
+        ))),
     };
     // build our application with a single route
     let app = Router::new()
@@ -63,12 +73,18 @@ async fn main() -> Result<(), anyhow::Error> {
             get(server::get_ratings).post(server::post_ratings),
         )
         .route("/collections", get(server::get_collections))
+        .layer(SecureClientIpSource::ConnectInfo.into_extension())
         .with_state(app_state);
 
     let address = env::var("ADDRESS").unwrap_or("127.0.0.1:8000".into());
     info!("Setup finished, starting listener on {}", address);
-    let listener = tokio::net::TcpListener::bind(address).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(&address).await.unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 
     Ok(())
 }
