@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import './App.css';
 import Rater from './rater/collectionRater';
@@ -16,9 +16,9 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Backend, { Collection, Collections } from './server/backend';
 
-function App() {
+const backend = new Backend("/api");
 
-  const backend = new Backend("/api"); // current setup has backend and frontend on same network
+function App() {
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [dropdownKey, setDropdownKey] = useState<string | null>(null);
   const [collections, setCollections] = useState<Collections | null>(null);

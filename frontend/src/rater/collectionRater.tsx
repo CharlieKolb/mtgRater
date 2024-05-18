@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { Card, Collection } from '../server/backend';
+import Backend, { Card, Collection, RatingByFormat } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfall_util';
@@ -24,9 +24,35 @@ function hasAtLeastOneLocalRating(card: Card) {
     return Object.values(card.rating_by_format).some(x => x.localRating !== null);
 }
 
+function reportRating({ backend, collection }: RaterProps, card: Card, ratingsByFormat: RatingByFormat) {
+    for (const [key, rating] of Object.entries(ratingsByFormat)) {
+        if (rating.localRating === null) {
+            break;
+        }
 
-export default function CollectionRater({ collection, language, backend, formats }: RaterProps) {
-    const collectionId = collection.collection_id;
+        // We increment locally mostly to avoid showing no votes for the number the user chose just now
+        switch (rating.localRating) {
+            case 1: rating.rated_1 += 1; break;
+            case 2: rating.rated_2 += 1; break;
+            case 3: rating.rated_3 += 1; break;
+            case 4: rating.rated_4 += 1; break;
+            case 5: rating.rated_5 += 1; break;
+        }
+        backend.postRating({
+            cardCode: card.card_code,
+            setCode: card.set_code,
+            formatId: key,
+            collectionId: collection.collection_id,
+            rating: rating.localRating,
+        });
+
+    }
+}
+
+
+
+export default function CollectionRater(props: RaterProps) {
+    const { collection, formats } = props;
     const [index, setIndex] = useState(0);
     const card = collection.ratings[index];
     const ratingsByFormat = card.rating_by_format;
@@ -47,16 +73,16 @@ export default function CollectionRater({ collection, language, backend, formats
     }, [collection])
 
 
-    function handleCardChanged(newIndex: number) {
+    const handleCardChanged = useCallback((newIndex: number) => {
         if (!submitted) {
             // If the card has no local rating yet it means nothing submitted the chosen value to the backend yet
-            reportRating();
+            reportRating(props, card, ratingsByFormat);
         }
         // set submitted here rather than reactive on new index to avoid rendering issue in child component
         // should either remove clearing feature or have explicit localstorage "cleared" state for each collection/set/card combo regardless of specific value
         setSubmitted(hasAtLeastOneLocalRating(collection.ratings[newIndex]));
         setIndex(newIndex);
-    }
+    }, [collection, card, props, ratingsByFormat, submitted, setIndex, setSubmitted]);
 
     function handleNextCard() {
         handleCardChanged((index + 1) % collection.ratings.length);
@@ -66,30 +92,6 @@ export default function CollectionRater({ collection, language, backend, formats
         handleCardChanged((index - 1 + collection.ratings.length) % collection.ratings.length);
     }
 
-    function reportRating() {
-        for (const [key, rating] of Object.entries(ratingsByFormat)) {
-            if (rating.localRating === null) {
-                break;
-            }
-
-            // We increment locally mostly to avoid showing no votes for the number the user chose just now
-            switch (rating.localRating) {
-                case 1: rating.rated_1 += 1; break;
-                case 2: rating.rated_2 += 1; break;
-                case 3: rating.rated_3 += 1; break;
-                case 4: rating.rated_4 += 1; break;
-                case 5: rating.rated_5 += 1; break;
-            }
-            backend.postRating({
-                cardCode: card.card_code,
-                setCode: card.set_code,
-                formatId: key,
-                collectionId,
-                rating: rating.localRating,
-            });
-
-        }
-    }
 
 
     // change image and rating distribution
@@ -101,7 +103,7 @@ export default function CollectionRater({ collection, language, backend, formats
 
         let prevImage = new Image();
         let nextImage = new Image();
-        resolveImage(collection, card).then((x) => {
+        resolveImage(collection, collection.ratings[index]).then((x) => {
             if (!ignore) {
                 setImageSource(x[0]);
                 setImageBacksideSource(x[1]);
@@ -117,7 +119,7 @@ export default function CollectionRater({ collection, language, backend, formats
 
     const handleNavigationClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         handleCardChanged(Number.parseInt(e.currentTarget.getAttribute("data-valueindex") || "0"));
-    }, [setIndex]);
+    }, [handleCardChanged]);
 
     const theme = ui.useTheme();
     const isDesktop = ui.useMediaQuery(theme.breakpoints.up('md'));
@@ -194,7 +196,7 @@ export default function CollectionRater({ collection, language, backend, formats
                         </React.Fragment>}
                     <ui.Button fullWidth={!isDesktop} onClick={() => {
                         if (!submitted) {
-                            reportRating();
+                            reportRating(props, card, ratingsByFormat);
                             setIndex(index); // hack to refresh local value in ratingBar
                             setSubmitted(true);
                         } else {

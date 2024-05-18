@@ -11,7 +11,7 @@ services:
   proxy:
     image: nginx
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf # note that this is nginx-prod.conf in the repo, to be renamed on transfer to prod server
+      - ./nginx.conf:/etc/nginx/nginx.conf
       - ./certbot/www:/var/www/certbot/:ro
       - ./certbot/conf/:/etc/nginx/ssl/:ro
     ports:
@@ -25,7 +25,7 @@ services:
       - server
       - frontend
 
-  # Enable to renew cert
+  # # Enable to renew cert
   # certbot:
   #   image: certbot/certbot:latest
   #   networks:
@@ -36,19 +36,22 @@ services:
   #     - ./certbot/conf/:/etc/letsencrypt/:rw
 
   frontend:
-    image: charliekolb/private_repository:mtgRaterFrontend
-    networks:
-      - client-side
+    image: nginx
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/nginx.conf # note that this is the separate frontend conf
+      - ./frontend/build:/usr/share/nginx/html/
     ports:
       - 3000:3000
+    restart: always
+    networks:
+      - client-side
+      - server-side
 
   server:
     image: charliekolb/private_repository:mtgRaterBackend
     networks:
       - client-side
       - server-side
-    volumes:
-      - ~/backups/mtgRater:/etc/data/mtgRaterBackups
     environment:
       - PG_DBNAME=postgres
       - PG_HOST=db
@@ -84,7 +87,6 @@ services:
       timeout: 5s
       retries: 5
 
-
 networks:
   client-side: {}
   server-side: {}
@@ -92,4 +94,3 @@ networks:
 volumes:
   backend-cache: {}
   db-data: {}
-  backups: {}

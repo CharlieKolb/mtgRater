@@ -1,5 +1,5 @@
 Https Certificates need to be renewed from the server via uncommenting the relevant section in compose-prod.yaml, followed by 
 
-`docker compose run --rm certbot renew` or `docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d mtgrater.com`
+`docker-compose run --rm certbot renew` or `docker-compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d mtgrater.com`
 
 See https://mindsers.blog/en/post/https-using-nginx-certbot-docker/
