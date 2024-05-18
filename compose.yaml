@@ -45,6 +45,7 @@ services:
       - ./backend/src:/code/src
       - backend-cache:/code/target
     environment:
+      - IP_SOURCE=ConnectInfo
       - PG_DBNAME=postgres
       - PG_HOST=db
       - PG_USER=postgres

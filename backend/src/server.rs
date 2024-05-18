@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     future::Future,
-    os::unix::net::SocketAddr,
+    net::SocketAddr,
     sync::{Arc, Mutex, RwLock},
 };
 
@@ -13,7 +13,10 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use axum_client_ip::{SecureClientIp, SecureClientIpSource};
+use axum_client_ip::{
+    Forwarded, LeftmostForwarded, LeftmostXForwardedFor, RightmostForwarded,
+    RightmostXForwardedFor, SecureClientIp, SecureClientIpSource, XForwardedFor, XRealIp,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use tracing::{info, warn};
@@ -82,16 +85,10 @@ pub async fn post_ratings(
 ) -> impl IntoResponse {
     // Cache combination of all inputs besides the actual rating to prevent ruining our data from repeated malicious POST requests
     // Note that the current implementation does not block to acquire a lock and prefers to handle the request. This is an intended tradeoff to avoid slowing the server during high organic traffic.
-    warn!("IP is {}", ip.0.to_string());
-
     {
         let cache_key = format!(
             "{}{}{}{}{}",
-            ip.0.to_string(),
-            collection_id,
-            set_code,
-            card_code,
-            format_id
+            ip.0, collection_id, set_code, card_code, format_id
         );
         let arc = state.post_rating_request_cache.clone();
         let mutex = arc.try_lock();

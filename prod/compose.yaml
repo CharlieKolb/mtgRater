@@ -53,6 +53,7 @@ services:
       - client-side
       - server-side
     environment:
+      - IP_SOURCE=RightmostXForwardedFor
       - PG_DBNAME=postgres
       - PG_HOST=db
       - PG_USER=postgres

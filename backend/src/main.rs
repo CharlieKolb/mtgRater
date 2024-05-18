@@ -17,6 +17,11 @@ mod db;
 mod server;
 mod util;
 
+#[derive(serde::Deserialize)]
+struct Config {
+    ip_source: SecureClientIpSource,
+}
+
 #[derive(Clone, Debug)]
 struct ServerData {
     collections: CollectionsJson,
@@ -31,6 +36,8 @@ async fn main() -> Result<(), anyhow::Error> {
         .with_target(false)
         .finish();
     tracing::subscriber::set_global_default(subscriber)?;
+
+    let config: Config = envy::from_env().unwrap();
 
     let server_data = ServerData {
         collections: util::parse_collections()?,
@@ -73,7 +80,14 @@ async fn main() -> Result<(), anyhow::Error> {
             get(server::get_ratings).post(server::post_ratings),
         )
         .route("/collections", get(server::get_collections))
-        .layer(SecureClientIpSource::ConnectInfo.into_extension())
+        .route(
+            "/hdrs",
+            axum::routing::get(|hdrs: axum::http::HeaderMap| async move {
+                info!("{:#?}", hdrs);
+                format!("{:#?}", hdrs)
+            }),
+        )
+        .layer(config.ip_source.into_extension())
         .with_state(app_state);
 
     let address = env::var("ADDRESS").unwrap_or("127.0.0.1:8000".into());
