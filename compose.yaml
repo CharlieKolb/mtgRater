@@ -23,7 +23,6 @@ services:
       - frontend
 
   frontend:
-    image: charliekolb/private_repository:mtgRaterFrontend
     build:
       context: frontend
       target: development
