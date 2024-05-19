@@ -5,7 +5,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use axum::{routing::get, Router, ServiceExt};
+use axum::{
+    body::HttpBody, extract::Request, http::Uri, middleware::Next, response::Response,
+    routing::get, Router, ServiceExt,
+};
 use axum_client_ip::SecureClientIpSource;
 use lru::LruCache;
 use server::AppState;
@@ -27,6 +30,12 @@ struct ServerData {
     collections: CollectionsJson,
 }
 
+impl std::fmt::Debug for AppState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.server_data.fmt(f)
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     let subscriber = tracing_subscriber::fmt()
@@ -34,6 +43,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .with_line_number(true)
         .with_thread_ids(true)
         .with_target(false)
+        .with_max_level(tracing::Level::DEBUG)
         .finish();
     tracing::subscriber::set_global_default(subscriber)?;
 
@@ -80,13 +90,6 @@ async fn main() -> Result<(), anyhow::Error> {
             get(server::get_ratings).post(server::post_ratings),
         )
         .route("/collections", get(server::get_collections))
-        .route(
-            "/hdrs",
-            axum::routing::get(|hdrs: axum::http::HeaderMap| async move {
-                info!("{:#?}", hdrs);
-                format!("{:#?}", hdrs)
-            }),
-        )
         .layer(config.ip_source.into_extension())
         .with_state(app_state);
 

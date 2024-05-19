@@ -1,10 +1,6 @@
-use std::collections::HashMap;
-
 use serde::Serialize;
 use sqlx::{prelude::FromRow, Pool, Postgres};
-use tracing::{debug, instrument};
-
-use crate::util::Collection;
+use tracing::debug;
 
 static GET_RATINGS_QUERY: &str = &include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -32,13 +28,6 @@ impl RatingsValue {
     }
 }
 
-enum RatingsColumn {
-    CollectionId(String),
-    SetId(String),
-    CardCode(i32),
-    Rating(RatingsValue),
-}
-
 #[tracing::instrument]
 pub async fn increment_rating(
     pool: &Pool<Postgres>,
@@ -47,8 +36,8 @@ pub async fn increment_rating(
     card_code: &String,
     set_code: &String,
     format_id: &String,
-) -> Result<(), anyhow::Error> {
-    sqlx::query(
+) -> Result<u64, sqlx::Error> {
+    let res = sqlx::query(
         format!(
             "UPDATE ratings
     SET {0} = {0} + 1
@@ -65,7 +54,7 @@ pub async fn increment_rating(
     .execute(pool)
     .await?;
 
-    Ok(())
+    Ok(res.rows_affected())
 }
 
 #[derive(Debug, FromRow, Serialize)]

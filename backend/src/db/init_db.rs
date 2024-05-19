@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use anyhow::Error;
 
-use sqlx::{prelude::FromRow, PgPool, Row};
+use sqlx::{prelude::FromRow, PgPool};
 use tracing::info;
 
 use crate::{
@@ -12,16 +12,10 @@ use crate::{
     ServerData,
 };
 
-static MIGRATIONS: &[&str] = &[
-    include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/db/queries/migrations/0001_ratings_up.sql"
-    )),
-    include_str!(concat!(
-        env!("CARGO_MANIFEST_DIR"),
-        "/db/queries/migrations/0002_cards_up.sql"
-    )),
-];
+static MIGRATIONS: &[&str] = &[include_str!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/db/queries/migrations/0001_ratings_up.sql"
+))];
 
 async fn generate_ratings_query(
     formats: &Vec<String>,
@@ -50,21 +44,24 @@ async fn generate_ratings_query(
         .join(","))
 }
 
-async fn generate_cards_query(collection_item: &CollectionItem) -> Result<String, anyhow::Error> {
-    let (_, ref cards) = collection_item;
+pub async fn run_ratings_query(
+    pool: &PgPool,
+    formats: &Vec<String>,
+    collection_item: &CollectionItem,
+) -> Result<(), anyhow::Error> {
+    let ratings_query: String = generate_ratings_query(&formats, &collection_item).await?;
+    sqlx::query(
+        format!(
+            "INSERT INTO ratings(collection_id, set_code, card_code, format_id)
+VALUES {} ON CONFLICT DO NOTHING",
+            ratings_query
+        )
+        .as_str(),
+    )
+    .execute(pool)
+    .await?;
 
-    Ok(cards
-        .into_iter()
-        .map(|x| {
-            format!(
-                "('{}', '{}', '{}')",
-                x.collector_number.replace("'", "''"),
-                x.set.replace("'", "''"),
-                x.name.replace("'", "''")
-            )
-        })
-        .collect::<Vec<String>>()
-        .join(","))
+    Ok(())
 }
 
 async fn register_supported_sets(
@@ -73,29 +70,7 @@ async fn register_supported_sets(
 ) -> Result<(), Error> {
     for (key, collection) in collections.entries.iter() {
         let item = util::resolve_collection(key, collection).await?;
-        let ratings_query: String = generate_ratings_query(&collections.formats, &item).await?;
-        sqlx::query(
-            format!(
-                "INSERT INTO ratings(collection_id, set_code, card_code, format_id)
-    VALUES {} ON CONFLICT DO NOTHING",
-                ratings_query
-            )
-            .as_str(),
-        )
-        .execute(pool)
-        .await?;
-
-        let cards_query: String = generate_cards_query(&item).await?;
-        sqlx::query(
-            format!(
-                "INSERT INTO cards(card_code, set_code, card_name)
-    VALUES {} ON CONFLICT DO NOTHING",
-                cards_query
-            )
-            .as_str(),
-        )
-        .execute(pool)
-        .await?;
+        run_ratings_query(pool, &collections.formats, &item).await?;
     }
 
     Ok(())
@@ -128,7 +103,7 @@ pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Erro
         .collections
         .entries
         .iter()
-        .filter(|x| !known_sets.contains(x.0))
+        .filter(|x| x.1.releasing || !known_sets.contains(x.0))
         .map(|(a, b)| (a.to_owned(), b.to_owned()))
         .collect::<HashMap<String, Collection>>();
 

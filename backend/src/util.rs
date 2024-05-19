@@ -13,7 +13,6 @@ use tracing::info;
 #[serde(default)]
 pub struct CardDetail {
     pub set: String,
-    pub name: String,
     pub collector_number: String,
 }
 
@@ -42,6 +41,7 @@ pub struct Collection {
     pub title: String,
     pub scryfall_query: String,
     pub set_order: Vec<String>,
+    pub releasing: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

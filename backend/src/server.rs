@@ -1,17 +1,14 @@
 use std::{
     collections::HashMap,
-    future::Future,
-    net::SocketAddr,
-    sync::{Arc, Mutex, RwLock},
+    sync::{Arc, Mutex},
 };
 
 use anyhow::anyhow;
 use axum::{
-    extract::{ConnectInfo, Query, State},
-    http::StatusCode,
+    extract::{Query, State},
+    http::{Method, StatusCode},
     response::IntoResponse,
-    routing::get,
-    Json, Router,
+    Json,
 };
 use axum_client_ip::{
     Forwarded, LeftmostForwarded, LeftmostXForwardedFor, RightmostForwarded,
@@ -19,11 +16,14 @@ use axum_client_ip::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
-use tracing::{info, warn};
+use tracing::{info, instrument};
 
 use crate::{
-    db::lib::{self, RatingsValue, SchemaRatings},
-    util::Collection,
+    db::{
+        init_db,
+        lib::{self, RatingsValue, SchemaRatings},
+    },
+    util::{CardDetail, Collection},
     ServerData,
 };
 
@@ -72,6 +72,25 @@ fn parse_rating(rating_raw: &String) -> Result<RatingsValue, anyhow::Error> {
     }
 }
 
+fn card_code_under_1000ish(card_code: &str) -> bool {
+    if let Ok(x) = card_code.parse::<usize>() {
+        return x < 1000;
+    } else {
+        // Some card_codes (scryfall term `collector_number` are non-numerical due to formats like A-<num> or <num>* (star emoji))
+        let filtered = card_code
+            .split("")
+            .into_iter()
+            .filter(|x| "0123456789".contains(x))
+            .collect::<String>();
+        if let Ok(x) = filtered.parse::<usize>() {
+            return x < 1000;
+        }
+    }
+
+    false
+}
+
+#[instrument(err(Debug, level = "warn"))]
 pub async fn post_ratings(
     ip: SecureClientIp,
     State(state): State<AppState>,
@@ -116,9 +135,7 @@ pub async fn post_ratings(
         Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
     };
 
-    // @TODO(ckolb): verify card_code and set_code are in existing collections
-
-    if let Err(e) = lib::increment_rating(
+    match lib::increment_rating(
         &state.pool,
         rating,
         &collection_id,
@@ -128,7 +145,44 @@ pub async fn post_ratings(
     )
     .await
     {
-        return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+        Ok(n) if n == 0 => {
+            if !state.server_data.collections.formats.contains(&format_id) {
+                return Err((StatusCode::BAD_REQUEST, "Unknown Format".into()));
+            }
+
+            let collection = match state.server_data.collections.entries.get(&collection_id) {
+                None => return Err((StatusCode::BAD_REQUEST, "Unknown collection".into())),
+                Some(c) => c,
+            };
+
+            if !collection.set_order.contains(&set_code) {
+                return Err((StatusCode::BAD_REQUEST, "Set not in collection".into()));
+            }
+
+            if collection.releasing && card_code_under_1000ish(&card_code) {
+                info!(
+                    "Adding missing entry {} {} to collection {}",
+                    set_code, card_code, collection_id
+                );
+                if let Err(e) = init_db::run_ratings_query(
+                    &state.pool,
+                    &state.server_data.collections.formats,
+                    &(
+                        collection_id,
+                        vec![CardDetail {
+                            set: set_code,
+                            collector_number: card_code,
+                        }],
+                    ),
+                )
+                .await
+                {
+                    return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
+                };
+            }
+        }
+        Err(e) => return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
+        _ => (),
     }
 
     // We intentionally do not return an updated result
@@ -157,6 +211,7 @@ fn parse_schemas(v: Vec<SchemaRatings>) -> Vec<CardGetResponse> {
         })
 }
 
+#[instrument(err(Debug, level = "warn"))]
 pub async fn get_ratings(
     State(state): State<AppState>,
     Query(RatingsCollectionExtractor { collection_id }): Query<RatingsCollectionExtractor>,
@@ -176,6 +231,7 @@ pub async fn get_ratings(
     }
 }
 
+#[instrument(err(Debug))]
 pub async fn get_collections(
     State(state): State<AppState>,
 ) -> Result<Json<crate::util::CollectionsJson>, axum::response::ErrorResponse> {

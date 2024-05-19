@@ -11,7 +11,8 @@
             "set_order": [
                 "mh3",
                 "spg"
-            ]
+            ],
+            "releasing": true
         },
         "otj": {
             "title": "Outlaws of Thunder Junction",
@@ -25,11 +26,17 @@
         },
         "neo": {
             "title": "Kamigawa: Neon Dynasty",
-            "scryfall_query": "set%3Aneo"
+            "scryfall_query": "set%3Aneo",
+            "set_order": [
+                "neo"
+            ]
         },
         "mh2": {
             "title": "Modern Horizons 2",
-            "scryfall_query": "set%3Amh2"
+            "scryfall_query": "set%3Amh2",
+            "set_order": [
+                "mh2"
+            ]
         }
     }
 }
