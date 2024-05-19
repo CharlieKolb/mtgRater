@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating } from '../server/backend';
+import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, DEFAULT_RATING } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfall_util';
@@ -22,7 +22,7 @@ export type RaterProps = {
 
 
 function hasAtLeastOneLocalRating(card: CardRating | undefined) {
-    if (card === undefined) return true;
+    if (card === undefined) return false;
 
     return Object.values(card.rating_by_format).some(x => x.localRating !== null);
 }
@@ -31,7 +31,7 @@ function reportRating({ backend, collection }: RaterProps, card: CardRating) {
     for (const [key, rating] of Object.entries(card.rating_by_format)) {
         console.log(JSON.stringify(rating));
         if (rating.localRating === null) {
-            break;
+            continue;
         }
 
         // We increment locally mostly to avoid showing no votes for the number the user chose just now
@@ -163,8 +163,15 @@ export default function CollectionRater(props: RaterProps) {
                     </ui.IconButton>
                 </ui.Stack >
                 <ui.Stack direction="column" justifyContent="center" spacing={1}>
-                    {rating && formats.map(x =>
-                        <RatingBar key={x} title={x} reveal={submitted} rating={rating.rating_by_format[x]} onRatingChanged={(v) => rating.rating_by_format[x].localRating = v} />
+                    {ratings && formats.map(x =>
+                        <RatingBar
+                            key={x}
+                            title={x}
+                            reveal={submitted}
+                            rating={rating?.rating_by_format[x] || DEFAULT_RATING}
+                            onRatingChanged={(v) => {
+                                ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
+                            }} />
                     )
                     }
                 </ui.Stack>

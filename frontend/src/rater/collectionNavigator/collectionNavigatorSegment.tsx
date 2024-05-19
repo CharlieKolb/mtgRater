@@ -9,7 +9,7 @@ import { CollectionNavigatorButton } from './collectionNavigatorButton';
 
 export type CollectionNavigatorSegmentProps = {
     collection: CollectionInfo;
-    cardDetails: Map<string, ScryfallCard.Any>,
+    cardDetails: Record<string, ScryfallCard.Any>,
     headerName: string;
     targetIndex: number;
     startIndex: number;
@@ -33,7 +33,7 @@ export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentP
         {
             range(startIndex, endIndex).map(i => {
                 const card = collection.list[i];
-                const cardInfo = cardDetails.get(card.setCode + card.cardCode);
+                const cardInfo = cardDetails[card.setCode + card.cardCode];
 
                 return (<CollectionNavigatorButton
                     key={`item-${card.setCode}-${card.cardCode}`}

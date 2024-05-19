@@ -2,6 +2,16 @@ import { ScryfallCard } from "@scryfall/api-types";
 
 export type Distribution = [number, number, number, number, number]
 
+
+export const DEFAULT_RATING = {
+    rated_1: 0,
+    rated_2: 0,
+    rated_3: 0,
+    rated_4: 0,
+    rated_5: 0,
+    localRating: null,
+}
+
 export type Rating = {
     rated_1: number,
     rated_2: number,
@@ -74,7 +84,7 @@ function makeLocalStorageKey(collectionId: string, formatId: string, { set_code,
     return `cardKey_collectionId-${collectionId}_formatId-${formatId}_setCode-${set_code}_cardCode-${card_code}_localRating`;
 }
 
-function updateFromLocalStorage(collectionId: string, ratings: Ratings) {
+function updateRatingsFromLocalStorage(collectionId: string, ratings: Ratings) {
     for (const [k, cardRating] of Object.entries(ratings.ratings)) {
         for (let [key, rating] of Object.entries(cardRating.rating_by_format)) {
             rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, key, cardRating)));
@@ -84,6 +94,7 @@ function updateFromLocalStorage(collectionId: string, ratings: Ratings) {
 }
 
 export function setLocalStorageRating(collectionId: string, formatId: string, setCode: string, cardCode: string, rating: LocalRating) {
+    console.log(rating);
     if (rating === null) {
         localStorage.removeItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }));
     }
@@ -101,7 +112,7 @@ export type CardNew = {
 
 export type CollectionInfo = {
     metadata: CollectionMetadata,
-    dict: Map<string, ScryfallCard.Any>,
+    dict: Record<string, ScryfallCard.Any>,
     list: CardNew[],
 }
 
@@ -113,14 +124,14 @@ function reorder_sets(cards: CardNew[], setOrder: string[]) {
 
 async function fetchCollectionInfo(collectionMetadata: CollectionMetadata): Promise<CollectionInfo> {
     let query = "https://api.scryfall.com/cards/search?q=-is%3Adigital+" + collectionMetadata.scryfall_query + "&unique=cards&order=set";
-    let dict = new Map<string, ScryfallCard.Any>();
+    let dict: Record<string, ScryfallCard.Any> = {};
     let list = [];
     do {
         const x = await (await fetch(query)).json();
         query = x.next_page;
         for (const card of (x.data as ScryfallCard.Any[])) {
             const { set, collector_number } = card;
-            dict.set(set + collector_number, card);
+            dict[set + collector_number] = card;
             list.push({ setCode: card.set, cardCode: card.collector_number, scryfallCard: card });
         }
     } while (query);
@@ -153,6 +164,12 @@ function parseRatings(ratingsJson: RatingsGetJson): Ratings {
     return { ratings: dict };
 }
 
+function updateFromCollectionInfo(ratings: Ratings, collectionInfo: CollectionInfo) {
+    for (const k of Object.keys(collectionInfo.dict)) {
+        ratings.ratings[k] = ratings.ratings[k] || Object.assign({}, DEFAULT_RATING);
+    }
+}
+
 export default class Backend {
     private server_url: string = "not set";
 
@@ -164,14 +181,15 @@ export default class Backend {
         return await fetchCollectionInfo(collectionMetadata);
     }
 
-    public async getRatings(collectionId: string): Promise<Ratings> {
+    public async getRatings(collectionId: string, collectionInfo: CollectionInfo): Promise<Ratings> {
         const response = await fetch(`${this.server_url}/ratings?collection_id=${collectionId}`);
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
         }
         const ratings = parseRatings(await response.json() as RatingsGetJson);
 
-        updateFromLocalStorage(collectionId, ratings);
+        updateFromCollectionInfo(ratings, collectionInfo);
+        updateRatingsFromLocalStorage(collectionId, ratings);
         return ratings;
     }
 

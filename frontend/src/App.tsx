@@ -53,7 +53,7 @@ function App() {
     let cancel = false;
     (async () => {
       if (collectionInfo === null) return;
-      const ratings = await backend.getRatings(collectionInfo.metadata.id);
+      const ratings = await backend.getRatings(collectionInfo.metadata.id, collectionInfo);
       console.log(`Updated ratings to ${JSON.stringify(ratings)}`);
       if (!cancel) {
         setRatings(ratings);

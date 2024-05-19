@@ -112,6 +112,5 @@ pub async fn get_ratings(
     .fetch_all(pool)
     .await?;
 
-    debug!("{:?}", results);
     Ok(results)
 }
