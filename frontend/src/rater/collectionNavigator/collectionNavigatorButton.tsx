@@ -60,8 +60,7 @@ export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonPro
 
     useEffect(() => {
         if (cardInfo) {
-            resolveImageFromInfo(cardInfo).then((x) => setImageSource(x[0]))
-
+            setImageSource(resolveImageFromInfo(cardInfo)[0]);
         }
     }, [cardInfo])
 

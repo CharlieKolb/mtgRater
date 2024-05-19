@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 
 import * as ui from '@mui/material';
 
-import { Collection } from '../../server/backend';
+import { CollectionInfo, Ratings } from '../../server/backend';
 
 import { ScryfallCard } from "@scryfall/api-types";
 import { CollectionNavigatorSegment } from './collectionNavigatorSegment';
 
 export type CollectionNavigatorProps = {
-    collection: Collection;
+    collection: CollectionInfo;
     targetIndex: number;
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
     onImgOverride: (img: string | undefined) => void;
@@ -17,31 +17,25 @@ export type CollectionNavigatorProps = {
 
 export default function CollectionNavigator(props: CollectionNavigatorProps) {
     const collection = props.collection;
-    const [cardDetails, setCardDetails] = useState<Map<string, ScryfallCard.Any>>(new Map());
-
-    useEffect(() => {
-        (async () => {
-            setCardDetails(await collection.cardDetails);
-        })();
-    }, [collection])
+    const cardDetails = props.collection.dict;
 
     function buildList() {
-        let firstCardOfSet = collection.ratings.map((x, i) => [x, i] as const).filter(([x, i]) => x.set_code !== collection.ratings.at(i - 1)?.set_code).map(x => x[1]);
+        let firstCardOfSet = collection.list.map((x, i) => [x, i] as const).filter(([x, i]) => x.setCode !== collection.list.at(i - 1)?.setCode).map(x => x[1]);
         if (firstCardOfSet.length === 0) firstCardOfSet = [0];
 
         let res = [];
         for (let i = 0; i < firstCardOfSet.length; i++) {
             const startIndex = firstCardOfSet[i];
-            const endIndex = (firstCardOfSet[i + 1] - 1) || (collection.ratings.length - 1);
-            let firstCard = collection.ratings[startIndex];
+            const endIndex = (firstCardOfSet[i + 1] - 1) || (collection.list.length - 1);
+            let firstCard = collection.list[startIndex];
             res.push((
-                <li key={`section-${firstCard.set_code}`}>
+                <li key={`section-${firstCard.setCode}`}>
                     <ul>
                         <CollectionNavigatorSegment
                             cardDetails={cardDetails}
                             startIndex={startIndex}
                             endIndex={endIndex}
-                            headerName={firstCard.set_code.toUpperCase()}
+                            headerName={firstCard.setCode.toUpperCase()}
                             {...props}
                         />
                     </ul>

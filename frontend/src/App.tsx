@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import './App.css';
 import Rater from './rater/collectionRater';
+import { resolveImage } from './util/scryfall_util';
 
 import * as ui from '@mui/material';
 
@@ -14,17 +15,23 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import Backend, { Collection, Collections } from './server/backend';
+import Backend, { Ratings, Collections, CollectionMetadata, CollectionInfo } from './server/backend';
 
 const backend = new Backend("/api");
 
 function App() {
-  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [collectionInfo, setCollectionInfo] = useState<CollectionInfo | null>(null);
   const [dropdownKey, setDropdownKey] = useState<string | null>(null);
   const [collections, setCollections] = useState<Collections | null>(null);
+
+  // common use pattern will see these default values replaced long before they need to be displayed
+  const [ratings, setRatings] = useState<Ratings | null>(null);
+
+  const [raterLoading, setRaterLoading] = useState(true);
+
   useEffect(() => {
     (async () => {
-      const collections = await backend.getCollections();
+      const collections = await backend.getCollectionMetadata();
       console.log(`Fetched collections file: ${JSON.stringify(collections)}`);
       setCollections(collections);
       setDropdownKey(collections.latest);
@@ -32,20 +39,39 @@ function App() {
   }, []);
 
   useEffect(() => {
-
+    setRaterLoading(true);
     (async () => {
       if (collections === null) return;
-      const new_collection = await backend.getRatings(dropdownKey || collections.latest);
-      console.log(`Updated collection to ${JSON.stringify(new_collection)}`);
-      setSelectedCollection(new_collection);
+      const new_collection_info = await backend.getCollectionInfo(collections.entries[dropdownKey + ""]);
+      console.log(`Updated collection_info to ${JSON.stringify(new_collection_info)}`);
+      (new Image()).src = resolveImage(new_collection_info.list[0])[0];
+      setCollectionInfo(new_collection_info);
     })();
-  }, [collections, dropdownKey]);
+  }, [collections, dropdownKey, setRaterLoading]);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (collectionInfo === null) return;
+      const ratings = await backend.getRatings(collectionInfo.metadata.id);
+      console.log(`Updated ratings to ${JSON.stringify(ratings)}`);
+      if (!cancel) {
+        setRatings(ratings);
+        setRaterLoading(false);
+      }
+    })();
+
+    return () => {
+      cancel = true;
+    }
+  }, [collectionInfo, setRatings, setRaterLoading]);
 
 
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* <ui.Stack direction="column"> */}
       <ui.Stack
         direction={{ xs: "column", md: "row" }}
         // marginTop={5}
@@ -69,11 +95,13 @@ function App() {
         }
         <ui.Divider orientation="vertical" flexItem />
         <ui.Box flexGrow={1}>
-          {collections !== null && selectedCollection !== null &&
-            <Rater key={selectedCollection.collection_id} collection={selectedCollection} language='en' backend={backend} formats={collections?.formats} />
+          {(!raterLoading && collections !== null && collectionInfo !== null && ratings !== null) ?
+            <Rater key={collectionInfo.metadata.id} collection={collectionInfo} ratings={ratings} language='en' backend={backend} formats={collections?.formats} /> :
+            <ui.CircularProgress sx={{ justifySelf: "center" }} />
           }
         </ui.Box>
       </ui.Stack>
+      {/* </ui.Stack> */}
     </ThemeProvider >
   );
 }

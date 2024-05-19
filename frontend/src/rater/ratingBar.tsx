@@ -1,12 +1,12 @@
 import * as ui from '@mui/material';
 
-import { CardRating, Distribution, Rating } from "../server/backend";
+import { CardRatingValue, Distribution, Rating } from "../server/backend";
 
 export type RatingBarProps = {
     title: string;
     rating: Rating;
     reveal: boolean;
-    onRatingChanged: (rating: CardRating) => void;
+    onRatingChanged: (rating: CardRatingValue) => void;
 }
 
 function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating): Distribution {
@@ -19,7 +19,7 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
     const distribution = toDistribution(rating);
 
     function handleRatingChange(value: string | number) {
-        let res: CardRating = 1;
+        let res: CardRatingValue = 1;
         switch (value) {
             case "1": case 1: res = 1; break;
             case "2": case 2: res = 2; break;

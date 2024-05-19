@@ -14,45 +14,39 @@ export type Rating = {
 export type RatingByFormat = Record<string, Rating>;
 
 // snakecase since this matches the backend json
-export type Card = {
+export type CardRating = {
     set_code: string,
     card_code: string,
     rating_by_format: RatingByFormat;
 }
 
+export type Ratings = {
+    ratings: Record<string, CardRating>;
+};
 
-// snakecase since this matches the backend json
-type CollectionResponse = {
-    collection_id: string;
-    collection_info: CollectionInfo;
-    ratings: Card[];
-}
+export type CardRatingValue = 1 | 2 | 3 | 4 | 5;
 
-export type Collection = CollectionResponse & {
-    cardDetails: Promise<Map<string, ScryfallCard.Any>>,
-}
-
-export type CardRating = 1 | 2 | 3 | 4 | 5;
-
-export type LocalRating = CardRating | null;
+export type LocalRating = CardRatingValue | null;
 
 export type RatingsPostRequest = {
     collectionId: string;
     formatId: string;
-    rating: CardRating;
+    rating: CardRatingValue;
     cardCode: string;
     setCode: string;
 }
 
-export type CollectionInfo = {
+export type CollectionMetadata = {
+    id: string,
     title: string;
     scryfall_query: string;
-    set_order?: string[];
+    set_order: string[];
+    releasing?: boolean;
 }
 
 export type Collections = {
     formats: string[];
-    entries: Record<string, CollectionInfo>;
+    entries: Record<string, CollectionMetadata>;
     latest: string;
 }
 
@@ -68,14 +62,22 @@ function stringToRating(s: string | null): LocalRating {
     }
 }
 
-function makeLocalStorageKey(collectionId: string, formatId: string, { set_code, card_code }: Pick<Card, "set_code" | "card_code">) {
+export function makeRatingsKey(card: CardNew) {
+    return card.setCode + card.cardCode;
+}
+
+export function makeRatingsKeyJson(card: { set_code: string, card_code: string }) {
+    return card.set_code + card.card_code;
+}
+
+function makeLocalStorageKey(collectionId: string, formatId: string, { set_code, card_code }: Pick<CardRating, "set_code" | "card_code">) {
     return `cardKey_collectionId-${collectionId}_formatId-${formatId}_setCode-${set_code}_cardCode-${card_code}_localRating`;
 }
 
-function updateFromLocalStorage(collectionId: string, ratings: Card[]) {
-    for (let schema of ratings) {
-        for (let [formatId, rating] of Object.entries(schema.rating_by_format)) {
-            rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, formatId, schema)));
+function updateFromLocalStorage(collectionId: string, ratings: Ratings) {
+    for (const [k, cardRating] of Object.entries(ratings.ratings)) {
+        for (let [key, rating] of Object.entries(cardRating.rating_by_format)) {
+            rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, key, cardRating)));
         }
     }
     return ratings;
@@ -90,22 +92,66 @@ export function setLocalStorageRating(collectionId: string, formatId: string, se
     }
 }
 
-async function fetchCardInfo(collection: CollectionResponse): Promise<Map<string, ScryfallCard.Any>> {
-    let query = "https://api.scryfall.com/cards/search?q=-is%3Adigital+" + collection.collection_info.scryfall_query + "&unique=cards";
-    let res = new Map<string, ScryfallCard.Any>();
+export type CardNew = {
+    setCode: string,
+    cardCode: string,
+    scryfallCard: ScryfallCard.Any,
+
+}
+
+export type CollectionInfo = {
+    metadata: CollectionMetadata,
+    dict: Map<string, ScryfallCard.Any>,
+    list: CardNew[],
+}
+
+function reorder_sets(cards: CardNew[], setOrder: string[]) {
+    // TODO: Apply custom set order here. Happens to work out for MH3 tho so kinda low priority
+
+    return cards;
+}
+
+async function fetchCollectionInfo(collectionMetadata: CollectionMetadata): Promise<CollectionInfo> {
+    let query = "https://api.scryfall.com/cards/search?q=-is%3Adigital+" + collectionMetadata.scryfall_query + "&unique=cards&order=set";
+    let dict = new Map<string, ScryfallCard.Any>();
+    let list = [];
     do {
         const x = await (await fetch(query)).json();
         query = x.next_page;
         for (const card of (x.data as ScryfallCard.Any[])) {
             const { set, collector_number } = card;
-            res.set(set + collector_number, card);
-
+            dict.set(set + collector_number, card);
+            list.push({ setCode: card.set, cardCode: card.collector_number, scryfallCard: card });
         }
     } while (query);
 
-    return res;
+    list = reorder_sets(list, collectionMetadata.set_order);
+
+    return { metadata: collectionMetadata, dict, list };
 }
 
+type CardGetJson = {
+    set_code: string,
+    card_code: string,
+    rating_by_format: Record<string, Rating>,
+
+}
+
+// snakecase since this matches the backend json
+type RatingsGetJson = {
+    collection_id: string;
+    collection_info: CollectionInfo;
+    ratings: CardGetJson[];
+}
+
+function parseRatings(ratingsJson: RatingsGetJson): Ratings {
+    let dict: Record<string, CardRating> = {}
+    for (const rating of ratingsJson.ratings) {
+        const key = makeRatingsKeyJson(rating);
+        dict[key] = rating;
+    }
+    return { ratings: dict };
+}
 
 export default class Backend {
     private server_url: string = "not set";
@@ -114,17 +160,19 @@ export default class Backend {
         this.server_url = url;
     }
 
-    public async getRatings(collectionId: string): Promise<Collection> {
+    public async getCollectionInfo(collectionMetadata: CollectionMetadata): Promise<CollectionInfo> {
+        return await fetchCollectionInfo(collectionMetadata);
+    }
+
+    public async getRatings(collectionId: string): Promise<Ratings> {
         const response = await fetch(`${this.server_url}/ratings?collection_id=${collectionId}`);
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
         }
-        const collection = await response.json() as CollectionResponse;
+        const ratings = parseRatings(await response.json() as RatingsGetJson);
 
-        updateFromLocalStorage(collectionId, collection.ratings);
-
-        return Object.assign({}, collection, { cardDetails: fetchCardInfo(collection) });
-
+        updateFromLocalStorage(collectionId, ratings);
+        return ratings;
     }
 
     public postRating({ collectionId, formatId, rating, cardCode, setCode }: RatingsPostRequest): void {
@@ -134,8 +182,14 @@ export default class Backend {
         });
     }
 
-    public async getCollections(): Promise<Collections> {
-        return (await fetch(`${this.server_url}/collections`)).json() as Promise<Collections>;
+    public async getCollectionMetadata(): Promise<Collections> {
+        const collections = await (await fetch(`/collections.json`)).json() as Collections;
+
+        for (const [k, v] of Object.entries(collections.entries)) {
+            v.id = k; // note id is still undefined here as opposed to what the type states
+        }
+
+        return collections;
     }
 }
 

@@ -2,13 +2,13 @@
 import React from 'react';
 
 import * as ui from '@mui/material';
-import { Collection } from '../../server/backend';
+import { CollectionInfo, Ratings } from '../../server/backend';
 import { ScryfallCard } from '@scryfall/api-types';
 import { CollectionNavigatorButton } from './collectionNavigatorButton';
 
 
 export type CollectionNavigatorSegmentProps = {
-    collection: Collection;
+    collection: CollectionInfo;
     cardDetails: Map<string, ScryfallCard.Any>,
     headerName: string;
     targetIndex: number;
@@ -32,11 +32,11 @@ export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentP
     return <div><ui.ListSubheader>{headerName}</ui.ListSubheader>
         {
             range(startIndex, endIndex).map(i => {
-                const card = collection.ratings[i];
-                const cardInfo = cardDetails.get(card.set_code + card.card_code);
+                const card = collection.list[i];
+                const cardInfo = cardDetails.get(card.setCode + card.cardCode);
 
                 return (<CollectionNavigatorButton
-                    key={`item-${card.set_code}-${card.card_code}`}
+                    key={`item-${card.setCode}-${card.cardCode}`}
 
                     index={i}
                     autoFocus={targetIndex === i}
