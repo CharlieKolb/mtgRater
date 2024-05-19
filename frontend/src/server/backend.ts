@@ -23,6 +23,13 @@ export type Rating = {
 
 export type RatingByFormat = Record<string, Rating>;
 
+export function hasAtLeastOneLocalRating(card: CardRating | undefined) {
+    if (card === undefined) return false;
+
+    return Object.values(card.rating_by_format).some(x => x.localRating !== null);
+}
+
+
 // snakecase since this matches the backend json
 export type CardRating = {
     set_code: string,

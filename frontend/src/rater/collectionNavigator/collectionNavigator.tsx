@@ -9,6 +9,7 @@ import { CollectionNavigatorSegment } from './collectionNavigatorSegment';
 
 export type CollectionNavigatorProps = {
     collection: CollectionInfo;
+    ratings: Ratings;
     targetIndex: number;
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
     onImgOverride: (img: string | undefined) => void;

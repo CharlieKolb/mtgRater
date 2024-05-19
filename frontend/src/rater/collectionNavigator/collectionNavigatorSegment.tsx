@@ -2,13 +2,14 @@
 import React from 'react';
 
 import * as ui from '@mui/material';
-import { CollectionInfo, Ratings } from '../../server/backend';
+import { CollectionInfo, makeRatingsKey, Ratings } from '../../server/backend';
 import { ScryfallCard } from '@scryfall/api-types';
 import { CollectionNavigatorButton } from './collectionNavigatorButton';
 
 
 export type CollectionNavigatorSegmentProps = {
     collection: CollectionInfo;
+    ratings: Ratings;
     cardDetails: Record<string, ScryfallCard.Any>,
     headerName: string;
     targetIndex: number;
@@ -27,7 +28,7 @@ function range(start: number, end_inclusive: number) {
 }
 
 
-export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentProps>(({ collection, headerName, targetIndex, startIndex, endIndex, cardDetails, onItemClick, onImgOverride }: CollectionNavigatorSegmentProps) => {
+export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentProps>(({ collection, ratings, headerName, targetIndex, startIndex, endIndex, cardDetails, onItemClick, onImgOverride }: CollectionNavigatorSegmentProps) => {
 
     return <div><ui.ListSubheader>{headerName}</ui.ListSubheader>
         {
@@ -41,6 +42,7 @@ export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentP
                     index={i}
                     autoFocus={targetIndex === i}
                     selected={targetIndex === i}
+                    rating={ratings.ratings[makeRatingsKey(card)]}
                     onItemClick={onItemClick}
                     onImgOverride={onImgOverride}
                     cardInfo={cardInfo}

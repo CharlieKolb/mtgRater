@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import { ScryfallCard, ScryfallColorLike, ScryfallColors } from '@scryfall/api-types';
 import { resolveImageFromInfo } from '../../util/scryfall_util';
+import { CardRating, hasAtLeastOneLocalRating, LocalRating } from '../../server/backend';
 
 
 export type CollectionNavigatorButtonProps = {
@@ -11,6 +12,7 @@ export type CollectionNavigatorButtonProps = {
     selected: boolean;
     index: number;
     cardInfo: ScryfallCard.Any | undefined;
+    rating: CardRating;
     onItemClick: React.MouseEventHandler<HTMLDivElement> | undefined;
     onImgOverride: (img: string | undefined) => void;
 
@@ -52,7 +54,7 @@ function getColorIdentityCode(cardInfo: ScryfallCard.Any | undefined): string | 
     return null
 }
 
-export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ autoFocus, selected, index, cardInfo, onItemClick, onImgOverride }: CollectionNavigatorButtonProps) => {
+export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ rating, autoFocus, selected, index, cardInfo, onItemClick, onImgOverride }: CollectionNavigatorButtonProps) => {
     const colorCode = getColorIdentityCode(cardInfo);
     const title = cardInfo?.name || "";
 
@@ -74,7 +76,8 @@ export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonPro
         sx={{
             lineHeight: "1.7em",
             height: "1.7em",
-            whiteSpace: "nowrap"
+            whiteSpace: "nowrap",
+            bgcolor: hasAtLeastOneLocalRating(rating) ? '#21252d' : 'theme.palette.background',
         }}>
         {cardInfo && colorCode && <ui.Box
             display="block"

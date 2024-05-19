@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING } from '../server/backend';
+import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING, hasAtLeastOneLocalRating } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfall_util';
@@ -21,11 +21,6 @@ export type RaterProps = {
 
 
 
-function hasAtLeastOneLocalRating(card: CardRating | undefined) {
-    if (card === undefined) return false;
-
-    return Object.values(card.rating_by_format).some(x => x.localRating !== null);
-}
 
 function reportRating({ backend, collection }: RaterProps, card: CardRating) {
     for (const [key, rating] of Object.entries(card.rating_by_format)) {
@@ -184,6 +179,7 @@ export default function CollectionRater(props: RaterProps) {
                                 onClose={() => setShowMobileNavigator(!showMobileNavigator)}
                             >
                                 <CollectionNavigator
+                                    ratings={ratings}
                                     collection={collection}
                                     targetIndex={index}
                                     onItemClick={(e) => {
@@ -207,7 +203,7 @@ export default function CollectionRater(props: RaterProps) {
                 </ui.Stack>
             </ui.Stack >
             {isDesktop && <ui.Divider orientation="vertical" flexItem />}
-            {isDesktop && <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />}
+            {isDesktop && <CollectionNavigator ratings={ratings} collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />}
         </ui.Stack >
     )
 }
