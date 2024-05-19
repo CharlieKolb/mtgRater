@@ -22,7 +22,7 @@ export type RaterProps = {
 
 
 function hasAtLeastOneLocalRating(card: CardRating | undefined) {
-    if (card === undefined) return false;
+    if (card === undefined) return true;
 
     return Object.values(card.rating_by_format).some(x => x.localRating !== null);
 }
@@ -76,7 +76,6 @@ export default function CollectionRater(props: RaterProps) {
         setIndex(0);
     }, [ratings])
 
-
     const handleCardChanged = useCallback((newIndex: number) => {
         if (!submitted && rating) {
             // If the card has no local rating yet it means nothing submitted the chosen value to the backend yet
@@ -84,9 +83,9 @@ export default function CollectionRater(props: RaterProps) {
         }
         // set submitted here rather than reactive on new index to avoid rendering issue in child component
         // should either remove clearing feature or have explicit localstorage "cleared" state for each collection/set/card combo regardless of specific value
-        setSubmitted(hasAtLeastOneLocalRating(rating));
+        setSubmitted(hasAtLeastOneLocalRating(ratings.ratings[makeRatingsKey(collection.list[newIndex])]));
         setIndex(newIndex);
-    }, [ratings, card, props, rating, submitted, setIndex, setSubmitted]);
+    }, [props, rating, submitted, setIndex]);
 
     function handleNextCard() {
         handleCardChanged((index + 1) % collection.list.length);
@@ -97,14 +96,8 @@ export default function CollectionRater(props: RaterProps) {
     }
 
 
-
     // change image and rating distribution
     useEffect(() => {
-        let ignore = false;
-
-        // set distribution
-        setSubmitted(hasAtLeastOneLocalRating(ratings.ratings[index]));
-
         let n = collection.list.length;
         // preload next/prev image to warm cache
         for (const i of [-1, 1]) {
@@ -115,11 +108,7 @@ export default function CollectionRater(props: RaterProps) {
         const currentImgs = resolveImage(card);
         setImageSource(currentImgs[0]);
         setImageBacksideSource(currentImgs[1]); // usually undefined
-
-        return () => {
-            ignore = true;
-        }
-    }, [ratings, index])
+    }, [card, collection, ratings, index])
 
     const handleNavigationClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         handleCardChanged(Number.parseInt(e.currentTarget.getAttribute("data-valueindex") || "0"));

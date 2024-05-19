@@ -73,10 +73,8 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* <ui.Stack direction="column"> */}
       <ui.Stack
         direction={{ xs: "column", md: "row" }}
-        // marginTop={5}
         marginLeft={{ xs: 0, md: 2 }}
         gap={{ xs: 0, md: 2 }}
         maxWidth="100%"
@@ -105,7 +103,6 @@ function App() {
           }
         </ui.Box>
       </ui.Stack>
-      {/* </ui.Stack> */}
     </ThemeProvider >
   );
 }
