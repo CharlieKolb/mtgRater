@@ -3,7 +3,7 @@ import { ScryfallCard } from "@scryfall/api-types";
 export type Distribution = [number, number, number, number, number]
 
 
-export const DEFAULT_RATING = {
+export const EMPTY_RATING = {
     rated_1: 0,
     rated_2: 0,
     rated_3: 0,
@@ -94,7 +94,6 @@ function updateRatingsFromLocalStorage(collectionId: string, ratings: Ratings) {
 }
 
 export function setLocalStorageRating(collectionId: string, formatId: string, setCode: string, cardCode: string, rating: LocalRating) {
-    console.log(rating);
     if (rating === null) {
         localStorage.removeItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }));
     }
@@ -164,9 +163,20 @@ function parseRatings(ratingsJson: RatingsGetJson): Ratings {
     return { ratings: dict };
 }
 
-function updateFromCollectionInfo(ratings: Ratings, collectionInfo: CollectionInfo) {
-    for (const k of Object.keys(collectionInfo.dict)) {
-        ratings.ratings[k] = ratings.ratings[k] || Object.assign({}, DEFAULT_RATING);
+function makeEmptyLocalRating(set_code: string, card_code: string, formats: string[]) {
+    return {
+        set_code,
+        card_code,
+        rating_by_format: Object.fromEntries(formats.map(x => [x, Object.assign({
+            set_code,
+            card_code,
+        }, EMPTY_RATING)]))
+    }
+}
+
+function updateFromCollectionInfo(ratings: Ratings, collectionInfo: CollectionInfo, formats: string[]) {
+    for (const [k, v] of Object.entries(collectionInfo.dict)) {
+        ratings.ratings[k] = ratings.ratings[k] || makeEmptyLocalRating(v.set, v.collector_number, formats);
     }
 }
 
@@ -181,14 +191,14 @@ export default class Backend {
         return await fetchCollectionInfo(collectionMetadata);
     }
 
-    public async getRatings(collectionId: string, collectionInfo: CollectionInfo): Promise<Ratings> {
+    public async getRatings(collectionId: string, collectionInfo: CollectionInfo, formats: string[]): Promise<Ratings> {
         const response = await fetch(`${this.server_url}/ratings?collection_id=${collectionId}`);
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
         }
         const ratings = parseRatings(await response.json() as RatingsGetJson);
 
-        updateFromCollectionInfo(ratings, collectionInfo);
+        updateFromCollectionInfo(ratings, collectionInfo, formats);
         updateRatingsFromLocalStorage(collectionId, ratings);
         return ratings;
     }

@@ -15,7 +15,7 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import Backend, { Ratings, Collections, CollectionMetadata, CollectionInfo } from './server/backend';
+import Backend, { Ratings, Collections, CollectionInfo } from './server/backend';
 
 const backend = new Backend("/api");
 
@@ -32,7 +32,6 @@ function App() {
   useEffect(() => {
     (async () => {
       const collections = await backend.getCollectionMetadata();
-      console.log(`Fetched collections file: ${JSON.stringify(collections)}`);
       setCollections(collections);
       setDropdownKey(collections.latest);
     })();
@@ -43,7 +42,6 @@ function App() {
     (async () => {
       if (collections === null) return;
       const new_collection_info = await backend.getCollectionInfo(collections.entries[dropdownKey + ""]);
-      console.log(`Updated collection_info to ${JSON.stringify(new_collection_info)}`);
       (new Image()).src = resolveImage(new_collection_info.list[0])[0];
       setCollectionInfo(new_collection_info);
     })();
@@ -52,9 +50,8 @@ function App() {
   useEffect(() => {
     let cancel = false;
     (async () => {
-      if (collectionInfo === null) return;
-      const ratings = await backend.getRatings(collectionInfo.metadata.id, collectionInfo);
-      console.log(`Updated ratings to ${JSON.stringify(ratings)}`);
+      if (collections === null || collectionInfo === null) return;
+      const ratings = await backend.getRatings(collectionInfo.metadata.id, collectionInfo, collections.formats);
       if (!cancel) {
         setRatings(ratings);
         setRaterLoading(false);

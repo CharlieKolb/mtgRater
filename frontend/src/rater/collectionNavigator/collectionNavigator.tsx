@@ -52,12 +52,12 @@ export default function CollectionNavigator(props: CollectionNavigatorProps) {
     return (
         <ui.List
             sx={{
-                justifyItems: "right",
                 height: "100vh",
                 position: "relative",
                 // display: "flex", // @TODO(ckolb): this happens to create a really cool "by segment" mode that should be expanded upon
                 bgcolor: 'background.paper',
-                width: isDesktop ? "22%" : "100%",
+                minWidth: isDesktop ? "22%" : "70%",
+                maxWidth: isDesktop ? "50%" : "90%",
                 overflow: 'auto',
                 '& ul': { padding: 0 },
 

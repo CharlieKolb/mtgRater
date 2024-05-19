@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, DEFAULT_RATING } from '../server/backend';
+import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfall_util';
@@ -29,7 +29,6 @@ function hasAtLeastOneLocalRating(card: CardRating | undefined) {
 
 function reportRating({ backend, collection }: RaterProps, card: CardRating) {
     for (const [key, rating] of Object.entries(card.rating_by_format)) {
-        console.log(JSON.stringify(rating));
         if (rating.localRating === null) {
             continue;
         }
@@ -168,7 +167,7 @@ export default function CollectionRater(props: RaterProps) {
                             key={x}
                             title={x}
                             reveal={submitted}
-                            rating={rating?.rating_by_format[x] || DEFAULT_RATING}
+                            rating={rating?.rating_by_format[x] || EMPTY_RATING}
                             onRatingChanged={(v) => {
                                 ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
                             }} />
