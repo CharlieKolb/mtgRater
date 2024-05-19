@@ -31,7 +31,7 @@ impl RatingsValue {
 #[tracing::instrument]
 pub async fn increment_rating(
     pool: &Pool<Postgres>,
-    rating: RatingsValue,
+    rating: &RatingsValue,
     collection_id: &String,
     card_code: &String,
     set_code: &String,

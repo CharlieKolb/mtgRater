@@ -86,7 +86,7 @@ pub async fn resolve_collection(name: &String, c: &Collection) -> Result<Collect
 
 pub fn parse_collections() -> Result<CollectionsJson, anyhow::Error> {
     Ok(serde_json::from_str::<CollectionsJson>(include_str!(
-        "../resources/collections.json"
+        "../../resources/collections.json"
     ))?)
 }
 

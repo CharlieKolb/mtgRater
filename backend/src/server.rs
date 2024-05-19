@@ -137,7 +137,7 @@ pub async fn post_ratings(
 
     match lib::increment_rating(
         &state.pool,
-        rating,
+        &rating,
         &collection_id,
         &card_code,
         &set_code,
@@ -168,17 +168,33 @@ pub async fn post_ratings(
                     &state.pool,
                     &state.server_data.collections.formats,
                     &(
-                        collection_id,
+                        collection_id.clone(),
                         vec![CardDetail {
-                            set: set_code,
-                            collector_number: card_code,
+                            set: set_code.clone(),
+                            collector_number: card_code.clone(),
                         }],
                     ),
                 )
                 .await
                 {
                     return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()));
-                };
+                } else {
+                    if let Err(e) = lib::increment_rating(
+                        &state.pool,
+                        &rating,
+                        &collection_id,
+                        &card_code,
+                        &set_code,
+                        &format_id,
+                    )
+                    .await
+                    {
+                        tracing::error!(
+                            "Attempt to add unkown card failed due to {}",
+                            e.to_string()
+                        );
+                    }
+                }
             }
         }
         Err(e) => return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
