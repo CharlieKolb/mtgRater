@@ -67,6 +67,8 @@ function App() {
   }, [collectionInfo, setRatings, setRaterLoading]);
 
 
+  const isDesktop = ui.useMediaQuery(theme.breakpoints.up('md'));
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -79,9 +81,11 @@ function App() {
         gap={{ xs: 0, md: 2 }}
         maxWidth="100%"
         width={{ xs: "auto", md: "auto" }}
+        height="100vh"
+        alignItems="center"
       >
         {collections !== null &&
-          <ui.Box marginTop={{ xs: 0, md: 5 }} height="2" justifyContent="stretch" >
+          <ui.Box marginTop={{ xs: 0, md: 5 }} justifyContent="stretch" alignSelf={{ xs: "stretch", md: "flex-start" }}>
             <ui.FormControl sx={{ display: "flex" }} >
               <ui.Select
                 id="set-select"
@@ -93,11 +97,11 @@ function App() {
             </ui.FormControl>
           </ui.Box>
         }
-        <ui.Divider orientation="vertical" flexItem />
-        <ui.Box flexGrow={1}>
+        {isDesktop && <ui.Divider orientation="vertical" flexItem />}
+        <ui.Box flexGrow={1} display="flex" justifyContent="center" alignItems="flex-start">
           {(!raterLoading && collections !== null && collectionInfo !== null && ratings !== null) ?
             <Rater key={collectionInfo.metadata.id} collection={collectionInfo} ratings={ratings} language='en' backend={backend} formats={collections?.formats} /> :
-            <ui.CircularProgress sx={{ justifySelf: "center" }} />
+            <ui.CircularProgress />
           }
         </ui.Box>
       </ui.Stack>

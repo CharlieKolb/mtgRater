@@ -211,7 +211,7 @@ export default function CollectionRater(props: RaterProps) {
                     </ui.Button>
                 </ui.Stack>
             </ui.Stack >
-            <ui.Divider orientation="vertical" flexItem />
+            {isDesktop && <ui.Divider orientation="vertical" flexItem />}
             {isDesktop && <CollectionNavigator collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />}
         </ui.Stack >
     )
