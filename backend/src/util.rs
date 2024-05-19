@@ -84,9 +84,11 @@ pub async fn resolve_collection(name: &String, c: &Collection) -> Result<Collect
     Ok((name.clone(), get_cards_from_query(&c.scryfall_query).await?))
 }
 
+// This file lives in the frontend as the single source of truth
+// It's an odd choice, but we have it available in the repo at build time since it's still within the same docker-compose
 pub fn parse_collections() -> Result<CollectionsJson, anyhow::Error> {
     Ok(serde_json::from_str::<CollectionsJson>(include_str!(
-        "../../resources/collections.json"
+        "../resources/collections.json"
     ))?)
 }
 
