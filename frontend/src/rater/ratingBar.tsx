@@ -42,12 +42,13 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n); // Start with 1 to avoid div by 0
-        const diameter = Math.max(2.5, ((distribution[index] + ((rating.localRating === index + 1) ? 1 : 0)) / Math.max(1, totalVotes + (rating.localRating === null ? 0 : 1))) * gridHeight);
+        const boxValue = distribution[index] + ((rating.localRating === index + 1) ? 1 : 0);
+        const diameter = Math.max(2.5, (boxValue / Math.max(1, totalVotes + (rating.localRating === null ? 0 : 1))) * gridHeight);
         const shapeStyles = { width: diameter, height: diameter };
         const shapeCircleStyles = { borderRadius: '50%' };
 
         return (<ui.Grid key={index} item gridRow="1">
-            <ui.Tooltip title={distribution[index]}>
+            <ui.Tooltip title={boxValue}>
                 < ui.Box
                     key={index}
                     bgcolor={rating.localRating === index + 1 ? "secondary.main" : "primary.main"
