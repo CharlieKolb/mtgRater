@@ -57,8 +57,8 @@ export default function CollectionNavigator(props: CollectionNavigatorProps) {
                 position: "relative",
                 // display: "flex", // @TODO(ckolb): this happens to create a really cool "by segment" mode that should be expanded upon
                 bgcolor: 'background.paper',
-                minWidth: isDesktop ? "22%" : "70%",
-                maxWidth: isDesktop ? "50%" : "90%",
+                minWidth: isDesktop ? "22%" : "0",
+                maxWidth: isDesktop ? "50%" : "100%",
                 overflow: 'auto',
                 '& ul': { padding: 0 },
 

@@ -16,6 +16,7 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Backend, { Ratings, Collections, CollectionInfo } from './server/backend';
+import CollectionExportButton from './rater/collectionExportButton';
 
 const backend = new Backend("/api");
 
@@ -80,7 +81,7 @@ function App() {
         alignItems="center"
       >
         {collections !== null &&
-          <ui.Box marginTop={{ xs: 0, md: 5 }} justifyContent="stretch" alignSelf={{ xs: "stretch", md: "flex-start" }}>
+          <ui.Stack marginTop={{ xs: 0, md: 5 }} marginBottom={{ xs: 0, md: 5 }} direction="column" justifyContent="space-between" alignSelf="stretch">
             <ui.FormControl sx={{ display: "flex" }} >
               <ui.Select
                 id="set-select"
@@ -90,7 +91,12 @@ function App() {
                 {Object.entries(collections.entries).map(e => <ui.MenuItem key={e[0]} value={e[0]}>{e[0].toUpperCase()}</ui.MenuItem>)}
               </ui.Select>
             </ui.FormControl>
-          </ui.Box>
+
+            {isDesktop && <ui.Stack direction="column" >
+              {collectionInfo !== null && ratings !== null && <CollectionExportButton formats={collections.formats} collectionInfo={collectionInfo} ratings={ratings} />}
+            </ui.Stack>}
+
+          </ui.Stack>
         }
         {isDesktop && <ui.Divider orientation="vertical" flexItem />}
         <ui.Box flexGrow={1} display="flex" justifyContent="center" alignItems="flex-start">

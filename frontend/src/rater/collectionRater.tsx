@@ -11,6 +11,7 @@ import { useDebounce } from 'use-debounce';
 
 import globals from "../globals";
 import { title } from 'process';
+import CollectionExportButton from './collectionExportButton';
 
 export type RaterProps = {
     collection: CollectionInfo,
@@ -185,15 +186,18 @@ export default function CollectionRater(props: RaterProps) {
                                 open={showMobileNavigator}
                                 onClose={() => setShowMobileNavigator(!showMobileNavigator)}
                             >
-                                <CollectionNavigator
-                                    ratings={ratings}
-                                    collection={collection}
-                                    targetIndex={index}
-                                    onItemClick={(e) => {
-                                        handleNavigationClick(e);
-                                        setShowMobileNavigator(false);
-                                    }}
-                                    onImgOverride={setImgOverride} />
+                                <ui.Stack direction="column" width="250px">
+                                    <CollectionExportButton formats={formats} collectionInfo={collection} ratings={ratings} />
+                                    <CollectionNavigator
+                                        ratings={ratings}
+                                        collection={collection}
+                                        targetIndex={index}
+                                        onItemClick={(e) => {
+                                            handleNavigationClick(e);
+                                            setShowMobileNavigator(false);
+                                        }}
+                                        onImgOverride={setImgOverride} />
+                                </ui.Stack>
                             </ui.Drawer>
                         </React.Fragment>}
                     <ui.Button fullWidth={!isDesktop} variant="outlined" onClick={() => {
