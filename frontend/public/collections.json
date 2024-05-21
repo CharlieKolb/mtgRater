@@ -1,8 +1,18 @@
 {
     "latest": "mh3",
     "formats": [
-        "limited",
-        "constructed"
+        {
+            "title": "limited",
+            "enabled": true
+        },
+        {
+            "title": "constructed",
+            "enabled": false
+        },
+        {
+            "title": "art",
+            "enabled": false
+        }
     ],
     "entries": {
         "mh3": {

@@ -1,4 +1,5 @@
 import * as ui from '@mui/material';
+import * as icons from '@mui/icons-material';
 
 import { CardRatingValue, Distribution, Rating } from "../server/backend";
 
@@ -7,6 +8,7 @@ export type RatingBarProps = {
     rating: Rating;
     reveal: boolean;
     onRatingChanged: (rating: CardRatingValue) => void;
+    handleDelete: ((event: any) => void);
 }
 
 function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating): Distribution {
@@ -15,7 +17,7 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
     ];
 }
 
-export default function RatingBar({ title, reveal, rating, onRatingChanged }: RatingBarProps) {
+export default function RatingBar({ title, reveal, rating, onRatingChanged, handleDelete }: RatingBarProps) {
     const distribution = toDistribution(rating);
 
     function handleRatingChange(value: string | number) {
@@ -101,10 +103,19 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
     />)
 
     return (
-        <ui.Stack direction={{ xs: "column", md: "row" }} display="flex" alignItems="center" justifyContent="center" minHeight={minHeight}>
-            <ui.Box alignContent="center" justifyContent="center" minWidth={{ xs: "0", md: "90px" }} sx={{ textTransform: 'capitalize' }}>
-                <ui.Typography sx={{ margin: 0, textTransform: 'capitalize' }}>{title}</ui.Typography>
-            </ui.Box>
+        <ui.Stack direction={{ xs: "column", md: "row" }} display="flex" alignSelf="stretch" alignItems="center" justifyContent="center" minHeight={minHeight}>
+            <ui.Stack direction="row">
+                {!isDesktop && <ui.Box width="36px" />
+                }
+                <ui.Box alignContent="center" justifyContent="center" minWidth={{ xs: "0", md: "90px" }} sx={{ textTransform: 'capitalize' }}>
+                    <ui.Typography sx={{ margin: 0, textTransform: 'capitalize' }}>{title}</ui.Typography>
+                </ui.Box>
+                {!isDesktop && <ui.IconButton color="error" onClick={handleDelete}>
+                    <icons.RemoveCircleOutline fontSize="small" />
+                </ui.IconButton>
+                }
+
+            </ui.Stack>
             {
                 reveal ?
                     <ui.Grid container
@@ -127,6 +138,10 @@ export default function RatingBar({ title, reveal, rating, onRatingChanged }: Ra
                 // </ui.Grid>
             }
             {/* Spacing to keep previous component centered */}
-            <ui.Box minWidth="90px" />
+            <ui.Box minWidth="90px" sx={{ display: { xs: "none", md: "block" } }}>
+                <ui.IconButton color="error" onClick={handleDelete}>
+                    <icons.RemoveCircleOutline fontSize="small" />
+                </ui.IconButton>
+            </ui.Box>
         </ui.Stack >);
 }

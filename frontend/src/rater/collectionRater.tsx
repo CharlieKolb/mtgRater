@@ -3,20 +3,21 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING, hasAtLeastOneLocalRating } from '../server/backend';
+import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING, hasAtLeastOneLocalRating, makeFormatStorageKey, Format } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfall_util';
 import { useDebounce } from 'use-debounce';
 
 import globals from "../globals";
+import { title } from 'process';
 
 export type RaterProps = {
     collection: CollectionInfo,
     ratings: Ratings;
     language: string; // e.g. "en", "jp"
     backend: Backend;
-    formats: string[];
+    formats: Format[];
 }
 
 
@@ -63,6 +64,8 @@ export default function CollectionRater(props: RaterProps) {
     const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(rating));
 
     const [showMobileNavigator, setShowMobileNavigator] = useState(false);
+
+    const [activeFormats, setActiveFormats] = useState(formats.filter(x => x.enabled).map(x => x.title).sort());
 
 
 
@@ -114,7 +117,7 @@ export default function CollectionRater(props: RaterProps) {
 
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
-            <ui.Stack direction="column" alignItems="stretch" justifyContent="center" spacing={{ xs: 0, md: 1 }} flexGrow={3}>
+            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 1, md: 1 }} flexGrow={3}>
                 <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" width="100%" maxWidth="100%" minWidth="70%" spacing={{ xs: 0, md: 2 }}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowBackIosNew />
@@ -156,23 +159,27 @@ export default function CollectionRater(props: RaterProps) {
                         <icons.ArrowForwardIos />
                     </ui.IconButton>
                 </ui.Stack >
-                <ui.Stack direction="column" justifyContent="center" spacing={1}>
-                    {ratings && formats.map(x =>
-                        <RatingBar
-                            key={x}
-                            title={x}
-                            reveal={submitted}
-                            rating={rating?.rating_by_format[x] || EMPTY_RATING}
-                            onRatingChanged={(v) => {
-                                ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
-                            }} />
-                    )
-                    }
-                </ui.Stack>
+                {ratings && activeFormats.map(x =>
+                    <RatingBar
+                        key={x}
+                        title={x}
+                        reveal={submitted}
+                        rating={rating?.rating_by_format[x] || EMPTY_RATING}
+                        onRatingChanged={(v) => {
+                            ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
+                        }}
+                        handleDelete={(e) => {
+                            localStorage.setItem(makeFormatStorageKey(x), "false");
+                            const format = formats.find(y => y.title === x);
+                            if (format) format.enabled = false;
+                            setActiveFormats(activeFormats.filter(y => y !== x));
+                        }} />
+                )
+                }
                 <ui.Stack direction="row" alignItems="center" justifyItems="stretch" alignSelf={isDesktop ? "center" : "stretch"}>
                     {!isDesktop &&
                         <React.Fragment>
-                            <ui.Button fullWidth onClick={(e) => setShowMobileNavigator(!showMobileNavigator)}>Browse</ui.Button>
+                            <ui.Button fullWidth variant="outlined" onClick={(e) => setShowMobileNavigator(!showMobileNavigator)}>Browse</ui.Button>
                             <ui.Drawer
                                 anchor="right"
                                 open={showMobileNavigator}
@@ -189,7 +196,7 @@ export default function CollectionRater(props: RaterProps) {
                                     onImgOverride={setImgOverride} />
                             </ui.Drawer>
                         </React.Fragment>}
-                    <ui.Button fullWidth={!isDesktop} onClick={() => {
+                    <ui.Button fullWidth={!isDesktop} variant="outlined" onClick={() => {
                         if (!submitted) {
                             if (rating) reportRating(props, rating);
                             setIndex(index); // hack to refresh local value in ratingBar
@@ -200,6 +207,16 @@ export default function CollectionRater(props: RaterProps) {
                     }}>
                         {submitted ? "Next" : "Reveal"}
                     </ui.Button>
+                </ui.Stack>
+                <ui.Stack direction="row" justifyContent="flex-start" width={{ xs: "80%", md: "40%" }} spacing={1}>
+                    {formats.filter(x => activeFormats.find(y => y === x.title) === undefined).map(x =>
+                        <ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
+                            localStorage.setItem(makeFormatStorageKey(x.title), "true");
+                            x.enabled = true;
+                            setActiveFormats([x.title, ...activeFormats].sort());
+
+                        }} />
+                    )}
                 </ui.Stack>
             </ui.Stack >
             {isDesktop && <ui.Divider orientation="vertical" flexItem />}

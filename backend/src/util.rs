@@ -44,10 +44,17 @@ pub struct Collection {
     pub releasing: bool,
 }
 
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[serde(default)]
+pub struct Format {
+    pub title: String,
+    pub enabled: bool,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CollectionsJson {
     pub latest: String,
-    pub formats: Vec<String>,
+    pub formats: Vec<Format>,
     pub entries: HashMap<String, Collection>,
 }
 

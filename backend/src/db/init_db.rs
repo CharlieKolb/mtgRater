@@ -8,7 +8,7 @@ use sqlx::{prelude::FromRow, PgPool};
 use tracing::info;
 
 use crate::{
-    util::{self, Collection, CollectionItem, CollectionsJson},
+    util::{self, Collection, CollectionItem, CollectionsJson, Format},
     ServerData,
 };
 
@@ -18,7 +18,7 @@ static MIGRATIONS: &[&str] = &[include_str!(concat!(
 ))];
 
 async fn generate_ratings_query(
-    formats: &Vec<String>,
+    formats: &Vec<Format>,
     collection_item: &CollectionItem,
 ) -> Result<String, anyhow::Error> {
     let (name, ref cards) = collection_item;
@@ -34,7 +34,7 @@ async fn generate_ratings_query(
                         name.replace("'", "''"),
                         x.set.replace("'", "''"),
                         x.collector_number.replace("'", "''"),
-                        format,
+                        format.title,
                     )
                 })
                 .collect::<Vec<String>>()
@@ -46,7 +46,7 @@ async fn generate_ratings_query(
 
 pub async fn run_ratings_query(
     pool: &PgPool,
-    formats: &Vec<String>,
+    formats: &Vec<Format>,
     collection_item: &CollectionItem,
 ) -> Result<(), anyhow::Error> {
     let ratings_query: String = generate_ratings_query(&formats, &collection_item).await?;

@@ -147,7 +147,13 @@ pub async fn post_ratings(
     {
         Ok(n) if n == 0 => {
             // This entire block aims to add a missing set/card combo due to a currently releasing set
-            if !state.server_data.collections.formats.contains(&format_id) {
+            if state
+                .server_data
+                .collections
+                .formats
+                .iter()
+                .all(|x| x.title != format_id)
+            {
                 return Err((StatusCode::BAD_REQUEST, "Unknown Format".into()));
             }
 

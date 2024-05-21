@@ -61,8 +61,13 @@ export type CollectionMetadata = {
     releasing?: boolean;
 }
 
+export type Format = {
+    title: string;
+    enabled: boolean;
+}
+
 export type Collections = {
-    formats: string[];
+    formats: Format[];
     entries: Record<string, CollectionMetadata>;
     latest: string;
 }
@@ -170,18 +175,22 @@ function parseRatings(ratingsJson: RatingsGetJson): Ratings {
     return { ratings: dict };
 }
 
-function makeEmptyLocalRating(set_code: string, card_code: string, formats: string[]) {
+export function makeFormatStorageKey(formatName: string) {
+    return `format${formatName}_enabled`;
+}
+
+function makeEmptyLocalRating(set_code: string, card_code: string, formats: Format[]) {
     return {
         set_code,
         card_code,
-        rating_by_format: Object.fromEntries(formats.map(x => [x, Object.assign({
+        rating_by_format: Object.fromEntries(formats.map(x => [x.title, Object.assign({
             set_code,
             card_code,
         }, EMPTY_RATING)]))
     }
 }
 
-function updateFromCollectionInfo(ratings: Ratings, collectionInfo: CollectionInfo, formats: string[]) {
+function updateFromCollectionInfo(ratings: Ratings, collectionInfo: CollectionInfo, formats: Format[]) {
     for (const [k, v] of Object.entries(collectionInfo.dict)) {
         ratings.ratings[k] = ratings.ratings[k] || makeEmptyLocalRating(v.set, v.collector_number, formats);
     }
@@ -198,7 +207,7 @@ export default class Backend {
         return await fetchCollectionInfo(collectionMetadata);
     }
 
-    public async getRatings(collectionId: string, collectionInfo: CollectionInfo, formats: string[]): Promise<Ratings> {
+    public async getRatings(collectionId: string, collectionInfo: CollectionInfo, formats: Format[]): Promise<Ratings> {
         const response = await fetch(`${this.server_url}/ratings?collection_id=${collectionId}`);
         if (!response.ok) {
             return Promise.reject("getRatings response not ok");
@@ -222,6 +231,13 @@ export default class Backend {
 
         for (const [k, v] of Object.entries(collections.entries)) {
             v.id = k; // note id is still undefined here as opposed to what the type states
+        }
+
+        for (const x of collections.formats) {
+            const val = localStorage.getItem(makeFormatStorageKey(x.title));
+            if (val !== null) {
+                x.enabled = val === "true";
+            }
         }
 
         return collections;
