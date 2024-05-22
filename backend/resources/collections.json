@@ -8,6 +8,10 @@
         {
             "title": "constructed",
             "enabled": true
+        },
+        {
+            "title": "art",
+            "enabled": false
         }
     ],
     "entries": {
