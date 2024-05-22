@@ -49,6 +49,7 @@ services:
 
   server:
     image: charliekolb/private_repository:mtgRaterBackend
+    restart: always
     networks:
       - client-side
       - server-side
