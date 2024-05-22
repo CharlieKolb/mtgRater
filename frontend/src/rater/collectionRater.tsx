@@ -97,8 +97,8 @@ export default function CollectionRater(props: RaterProps) {
 
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
-            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 0, md: 2 }} minWidth="80%" flexGrow={3}>
-                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" maxWidth="100%" minWidth="70%" spacing={{ xs: 0, md: 2 }}>
+            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 0, md: 0.2 }} minWidth="80%" flexGrow={3}>
+                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" maxWidth="100%" minWidth="70%" spacing={2}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>

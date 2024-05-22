@@ -2,6 +2,11 @@ if [[ $# -eq 0 ]]; then
     cd frontend
     NODE_ENV=production npm run build
     cd ..
+
+    cd backend
+    docker-compose build
+    docker-compose push
+    cd ..
 fi
 
 cp -rdfa frontend/build/. prod/frontend/build/ 

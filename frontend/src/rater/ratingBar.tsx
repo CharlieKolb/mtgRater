@@ -52,9 +52,9 @@ export default function RatingBar({ title, rating, card, reportRating, handleDel
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n); // Start with 1 to avoid div by 0
-        const boxValue = distribution[index] + ((rating.localRating === index + 1) ? 1 : 0);
+        const boxValue = distribution[index];
         // cap % at 0.75 to avoid size issues with few votes
-        const diameter = Math.max(2.5, (Math.min(0.75, boxValue / Math.max(1, totalVotes + (rating.localRating === null ? 0 : 1)))) * gridHeight);
+        const diameter = Math.max(2.5, (Math.min(0.75, boxValue / Math.max(1, totalVotes))) * gridHeight);
         const shapeStyles = { width: diameter, height: diameter };
         const shapeCircleStyles = { borderRadius: '50%' };
 

@@ -77,8 +77,10 @@ function App() {
         marginLeft={{ xs: 0, md: 2 }}
         gap={{ xs: 0, md: 2 }}
         maxWidth="100%"
+        // maxHeight="100%"
         width={{ xs: "auto", md: "auto" }}
         height="100vh"
+        maxHeight="100%"
         alignItems="center"
       >
         {collections !== null && isDesktop &&
