@@ -100,14 +100,14 @@ pub async fn post_ratings(
     }): Query<RatingsPostExtractor>,
 ) -> impl IntoResponse {
     // Cache combination of all inputs besides the actual rating to prevent ruining our data from repeated malicious POST requests
-    // Note that the current implementation does not block to acquire a lock and prefers to handle the request. This is an intended tradeoff to avoid slowing the server during high organic traffic.
+    // Note that we either block to acquire a lock or use `try_lock()`, trading off server throughput with how much we filter
     {
         let cache_key = format!(
             "{}{}{}{}{}",
             ip.0, collection_id, set_code, card_code, format_id
         );
         let arc = state.post_rating_request_cache.clone();
-        let mutex = arc.try_lock();
+        let mutex = arc.lock();
         if let Ok(mut cache) = mutex {
             let elem = cache.get(&cache_key);
             let res = match elem {
