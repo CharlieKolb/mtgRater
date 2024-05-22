@@ -2,7 +2,6 @@ import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
 import { CardRatingValue, Distribution, LocalRating, Rating } from "../server/backend";
-import { useEffect, useState } from 'react';
 
 export type RatingBarProps = {
     title: string;
@@ -21,11 +20,6 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
 
 export default function RatingBar({ title, rating, reportRating, handleDelete }: RatingBarProps) {
     const distribution = toDistribution(rating);
-    // const [localValue, setLocalValue] = useState(rating.localRating);
-
-    // useEffect(() => {
-    //     setLocalValue(rating.localRating);
-    // }, [rating])
 
 
     function handleRatingChange(value: string | number) {
