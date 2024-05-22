@@ -13,7 +13,6 @@ export const ProgramStore = new class ProgramStore {
         try {
             if (val === null) val = localStorage.getItem(key);
         } catch (e) { }
-        console.log(val);
         return val;
     }
     removeItem(key: string): void {
