@@ -12,7 +12,7 @@ export type CollectionNavigatorProps = {
     ratings: Ratings;
     targetIndex: number;
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void,
-    onImgOverride: (img: string | undefined) => void;
+    onIndexOverride: (idx: number | undefined) => void;
 
 }
 

@@ -67,8 +67,8 @@ export function filterCollectionInfo(collectionInfo: CollectionInfo, filterConfi
 
 
 export default function CollectionFilterToggles(props: CollectionFilterTogglesProps) {
-    const [rarities, setRarities] = React.useState(['common', 'uncommon', 'rare', 'mythic'] as const);
-    const [colors, setColors] = React.useState(['white', 'blue', 'black', 'red', 'green', 'colorless'] as const);
+    const [rarities, setRarities] = React.useState(['common', 'uncommon', 'rare', 'mythic']);
+    const [colors, setColors] = React.useState(['white', 'blue', 'black', 'red', 'green', 'colorless']);
 
     React.useEffect(() => {
         console.log(JSON.stringify(rarities));

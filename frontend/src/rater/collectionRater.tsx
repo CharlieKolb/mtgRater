@@ -60,8 +60,8 @@ export default function CollectionRater(props: RaterProps) {
 
     const [imageSource, setImageSource] = useState("")
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
-    const [imgOverride, setImgOverride] = useState<string | undefined>(undefined);
-    const [debouncedImgOverride] = useDebounce<string | undefined>(imgOverride, globals.navigatorHoverDebounce);
+    const [indexOverride, setIndexOverride] = useState<number | undefined>(undefined);
+    const [debouncedIndexOverride] = useDebounce<number | undefined>(indexOverride, globals.navigatorHoverDebounce);
 
     const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(rating));
 
@@ -124,7 +124,7 @@ export default function CollectionRater(props: RaterProps) {
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
-                        <img className="card" alt="loading..." src={debouncedImgOverride || imageSource} style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} />
+                        <img className="card" alt="loading..." src={(debouncedIndexOverride !== undefined && resolveImage(collection.list[debouncedIndexOverride])[0]) || imageSource} style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} />
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
@@ -165,7 +165,7 @@ export default function CollectionRater(props: RaterProps) {
                         key={x}
                         title={x}
                         reveal={submitted}
-                        rating={rating?.rating_by_format[x] || EMPTY_RATING}
+                        rating={(debouncedIndexOverride !== undefined && ratings.ratings[makeRatingsKey(collection.list[debouncedIndexOverride])].rating_by_format[x]) || rating?.rating_by_format[x] || EMPTY_RATING}
                         onRatingChanged={(v) => {
                             ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
                         }}
@@ -196,7 +196,7 @@ export default function CollectionRater(props: RaterProps) {
                                             handleNavigationClick(e);
                                             setShowMobileNavigator(false);
                                         }}
-                                        onImgOverride={setImgOverride} />
+                                        onIndexOverride={setIndexOverride} />
                                 </ui.Stack>
                             </ui.Drawer>
                         </React.Fragment>}
@@ -224,7 +224,7 @@ export default function CollectionRater(props: RaterProps) {
                 </ui.Stack>
             </ui.Stack >
             {isDesktop && <ui.Divider orientation="vertical" flexItem />}
-            {isDesktop && <CollectionNavigator ratings={ratings} collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onImgOverride={setImgOverride} />}
+            {isDesktop && <CollectionNavigator ratings={ratings} collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onIndexOverride={setIndexOverride} />}
         </ui.Stack >
     )
 }

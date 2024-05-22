@@ -16,7 +16,7 @@ export type CollectionNavigatorSegmentProps = {
     startIndex: number;
     endIndex: number;
     onItemClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-    onImgOverride: (img: string | undefined) => void;
+    onIndexOverride: (idx: number | undefined) => void;
 }
 
 function range(start: number, end_inclusive: number) {
@@ -28,7 +28,7 @@ function range(start: number, end_inclusive: number) {
 }
 
 
-export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentProps>(({ collection, ratings, headerName, targetIndex, startIndex, endIndex, cardDetails, onItemClick, onImgOverride }: CollectionNavigatorSegmentProps) => {
+export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentProps>(({ collection, ratings, headerName, targetIndex, startIndex, endIndex, cardDetails, onItemClick, onIndexOverride }: CollectionNavigatorSegmentProps) => {
 
     return <div><ui.ListSubheader>{headerName}</ui.ListSubheader>
         {
@@ -44,7 +44,7 @@ export const CollectionNavigatorSegment = React.memo<CollectionNavigatorSegmentP
                     selected={targetIndex === i}
                     rating={ratings.ratings[makeRatingsKey(card)]}
                     onItemClick={onItemClick}
-                    onImgOverride={onImgOverride}
+                    onIndexOverride={onIndexOverride}
                     cardInfo={cardInfo}
                 />);
             })

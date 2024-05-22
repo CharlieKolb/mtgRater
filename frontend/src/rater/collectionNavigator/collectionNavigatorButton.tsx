@@ -14,7 +14,7 @@ export type CollectionNavigatorButtonProps = {
     cardInfo: ScryfallCard.Any | undefined;
     rating: CardRating;
     onItemClick: React.MouseEventHandler<HTMLDivElement> | undefined;
-    onImgOverride: (img: string | undefined) => void;
+    onIndexOverride: (index: number | undefined) => void;
 
 }
 
@@ -54,25 +54,17 @@ function getColorIdentityCode(cardInfo: ScryfallCard.Any | undefined): string | 
     return null
 }
 
-export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ rating, autoFocus, selected, index, cardInfo, onItemClick, onImgOverride }: CollectionNavigatorButtonProps) => {
+export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ rating, autoFocus, selected, index, cardInfo, onItemClick, onIndexOverride }: CollectionNavigatorButtonProps) => {
     const colorCode = getColorIdentityCode(cardInfo);
     const title = cardInfo?.name || "";
-
-    const [imageSource, setImageSource] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        if (cardInfo) {
-            setImageSource(resolveImageFromInfo(cardInfo)[0]);
-        }
-    }, [cardInfo])
 
     return (<ui.ListItemButton
         data-valueindex={index}
         autoFocus={autoFocus}
         selected={selected}
         onClick={onItemClick}
-        onMouseEnter={() => onImgOverride(imageSource)}
-        onMouseLeave={() => onImgOverride(undefined)}
+        onMouseEnter={() => onIndexOverride(index)}
+        onMouseLeave={() => onIndexOverride(undefined)}
         sx={{
             lineHeight: "1.7em",
             height: "1.7em",
