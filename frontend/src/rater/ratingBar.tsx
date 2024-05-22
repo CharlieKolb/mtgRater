@@ -21,11 +21,11 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
 
 export default function RatingBar({ title, rating, reportRating, handleDelete }: RatingBarProps) {
     const distribution = toDistribution(rating);
-    const [localValue, setLocalValue] = useState(rating.localRating);
+    // const [localValue, setLocalValue] = useState(rating.localRating);
 
-    useEffect(() => {
-        setLocalValue(rating.localRating);
-    }, [rating])
+    // useEffect(() => {
+    //     setLocalValue(rating.localRating);
+    // }, [rating])
 
 
     function handleRatingChange(value: string | number) {
@@ -40,8 +40,8 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
             default: console.log(`Received unexpected rating ${value}`); return;
         }
         rating.localRating = res;
-        setLocalValue(res);
-        reportRating(localValue, title);
+        // setLocalValue(res);
+        reportRating(rating.localRating, title);
     }
 
     const theme = ui.useTheme();
@@ -79,7 +79,7 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
     </ui.Grid>;
 
 
-    const makeElement = localValue !== null ? makeDistributionBox : makeRatingBox;
+    const makeElement = rating.localRating !== null ? makeDistributionBox : makeRatingBox;
 
     return (
         <ui.Stack direction={{ xs: "column", md: "row" }} display="flex" alignSelf="stretch" alignItems="center" justifyContent="center" minHeight={minHeight}>

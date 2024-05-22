@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ui from "@mui/material"
 import { CollectionInfo } from './server/backend';
+import * as icons from '@mui/icons-material';
 
 export type CollectionFilterTogglesProps = {
     handleFilterUpdate: (x: FilterConfig) => void;
@@ -90,7 +91,10 @@ export default function CollectionFilterToggles({ handleFilterUpdate }: Collecti
     return (
         <ui.Stack
             direction="column"
+            alignItems="center"
         >
+            <icons.FilterAltSharp fontSize="large" color="primary" />
+            <ui.Divider flexItem orientation="vertical" sx={{ my: 1 }} />
             <ui.ToggleButtonGroup
                 orientation='vertical'
                 value={rarities}
@@ -101,7 +105,7 @@ export default function CollectionFilterToggles({ handleFilterUpdate }: Collecti
                 <ui.ToggleButton value="rare">Rare</ui.ToggleButton>
                 <ui.ToggleButton value="mythic">Mythic</ui.ToggleButton>
             </ui.ToggleButtonGroup >
-            <ui.Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
+            <ui.Divider flexItem orientation="vertical" sx={{ my: 1 }} />
             <ui.ToggleButtonGroup
                 orientation='vertical'
                 value={colors}
