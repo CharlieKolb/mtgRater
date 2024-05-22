@@ -29,7 +29,7 @@ export default function CollectionRater(props: RaterProps) {
     const card = collection.list[index];
     const [rating, setRating] = useState(ratings.ratings[makeRatingsKey(card)] as CardRating);
 
-    const [imageSource, setImageSource] = useState("")
+    const [imageSource, setImageSource] = useState(resolveImage(card)[0])
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
     const [indexOverride, setIndexOverride] = useState<number | undefined>(undefined);
     const [debouncedIndexOverride] = useDebounce<number | undefined>(indexOverride, globals.navigatorHoverDebounce);
@@ -103,7 +103,11 @@ export default function CollectionRater(props: RaterProps) {
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
-                        <img className="card" alt="loading..." src={(debouncedIndexOverride !== undefined && resolveImage(collection.list[debouncedIndexOverride])[0]) || imageSource} style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} />
+                        <img
+                            className="card"
+                            alt="loading..."
+                            src={(debouncedIndexOverride !== undefined && resolveImage(collection.list[debouncedIndexOverride])[0]) || imageSource}
+                            style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} />
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
