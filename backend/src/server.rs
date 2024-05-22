@@ -132,6 +132,15 @@ pub async fn post_ratings(
         Err(e) => return Err((StatusCode::BAD_REQUEST, e.to_string())),
     };
 
+    let collection = match state.server_data.collections.entries.get(&collection_id) {
+        None => return Err((StatusCode::BAD_REQUEST, "Unknown collection".into())),
+        Some(c) => c,
+    };
+
+    if collection.excluded_formats.contains(&format_id) {
+        return Err((StatusCode::BAD_REQUEST, "Excluded format supplied".into()));
+    }
+
     match lib::increment_rating(
         &state.pool,
         &rating,

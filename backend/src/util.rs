@@ -42,6 +42,7 @@ pub struct Collection {
     pub scryfall_query: String,
     pub set_order: Vec<String>,
     pub releasing: bool,
+    pub excluded_formats: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]

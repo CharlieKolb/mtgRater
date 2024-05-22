@@ -60,6 +60,7 @@ export type CollectionMetadata = {
     scryfall_query: string;
     set_order: string[];
     releasing?: boolean;
+    excluded_formats?: string[];
 }
 
 export type Format = {

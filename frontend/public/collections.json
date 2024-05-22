@@ -6,11 +6,31 @@
             "enabled": true
         },
         {
-            "title": "constructed",
-            "enabled": true
+            "title": "commander",
+            "enabled": false
         },
         {
-            "title": "art",
+            "title": "standard",
+            "enabled": false
+        },
+        {
+            "title": "pioneer",
+            "enabled": false
+        },
+        {
+            "title": "modern",
+            "enabled": false
+        },
+        {
+            "title": "legacy",
+            "enabled": false
+        },
+        {
+            "title": "pauper",
+            "enabled": false
+        },
+        {
+            "title": "artwork",
             "enabled": false
         }
     ],
@@ -22,7 +42,11 @@
                 "mh3",
                 "spg"
             ],
-            "releasing": true
+            "releasing": true,
+            "excluded_formats": [
+                "standard",
+                "pioneer"
+            ]
         },
         "otj": {
             "title": "Outlaws of Thunder Junction",
@@ -46,6 +70,10 @@
             "scryfall_query": "set%3Amh2",
             "set_order": [
                 "mh2"
+            ],
+            "excluded_formats": [
+                "standard",
+                "pioneer"
             ]
         }
     }

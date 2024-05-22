@@ -70,15 +70,43 @@ async fn register_supported_sets(
 ) -> Result<(), Error> {
     for (key, collection) in collections.entries.iter() {
         let item = util::resolve_collection(key, collection).await?;
-        run_ratings_query(pool, &collections.formats, &item).await?;
+        run_ratings_query(
+            pool,
+            &collections
+                .formats
+                .clone()
+                .into_iter()
+                .filter(|x| !collection.excluded_formats.contains(&x.title))
+                .collect::<Vec<Format>>(),
+            &item,
+        )
+        .await?;
     }
 
     Ok(())
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct SchemaCards {
     collection_id: String,
+    format_id: String,
+}
+
+fn misses_format(
+    collection_id: &String,
+    formats: &Vec<Format>,
+    known_pairs: &HashSet<SchemaCards>,
+) -> bool {
+    for format in formats {
+        if !known_pairs.contains(&SchemaCards {
+            collection_id: collection_id.clone(),
+            format_id: format.title.clone(),
+        }) {
+            return true;
+        }
+    }
+
+    false
 }
 
 pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Error> {
@@ -88,12 +116,12 @@ pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Erro
     }
 
     // @TODO(ckolb): This should pull from a dedicated "collections" table once we have one
-    let known_sets = sqlx::query_as::<_, SchemaCards>("SELECT DISTINCT collection_id FROM ratings")
-        .fetch_all(pool)
-        .await?
-        .into_iter()
-        .map(|x| x.collection_id)
-        .collect::<HashSet<_>>();
+    let known_sets =
+        sqlx::query_as::<_, SchemaCards>("SELECT DISTINCT collection_id, format_id FROM ratings")
+            .fetch_all(pool)
+            .await?
+            .into_iter()
+            .collect::<HashSet<_>>();
 
     info!("{:?}", known_sets);
 
@@ -103,7 +131,20 @@ pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Erro
         .collections
         .entries
         .iter()
-        .filter(|x| x.1.releasing || !known_sets.contains(x.0))
+        .filter(|x| {
+            x.1.releasing
+                || misses_format(
+                    x.0,
+                    &server_data
+                        .collections
+                        .formats
+                        .clone()
+                        .into_iter()
+                        .filter(|y| !x.1.excluded_formats.contains(&y.title))
+                        .collect(),
+                    &known_sets,
+                )
+        })
         .map(|(a, b)| (a.to_owned(), b.to_owned()))
         .collect::<HashMap<String, Collection>>();
 

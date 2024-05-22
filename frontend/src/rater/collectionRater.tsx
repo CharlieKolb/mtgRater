@@ -215,7 +215,7 @@ export default function CollectionRater(props: RaterProps) {
                     </ui.Button>
                 </ui.Stack>
                 <ui.Stack direction="row" justifyContent="flex-start" width={{ xs: "80%", md: "40%" }} spacing={1}>
-                    {formats.filter(x => activeFormats.find(y => y === x.title) === undefined).map(x =>
+                    {formats.filter(x => activeFormats.find(y => y === x.title) === undefined).sort((a, b) => a.title.localeCompare(b.title)).map(x =>
                         <ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
                             ProgramStore.setItem(makeFormatStorageKey(x.title), "true");
                             x.enabled = true;

@@ -103,7 +103,15 @@ function App() {
         {isDesktop && <ui.Divider orientation="vertical" flexItem />}
         <ui.Box flexGrow={1} display="flex" justifyContent="center" alignItems="flex-start">
           {(!raterLoading && collections !== null && filteredCI !== null && ratings !== null && filteredCI.list.length > 0) ?
-            <Rater key={filteredCI.metadata.id + configToId(filterConfig)} collection={filteredCI} ratings={ratings} language='en' backend={backend} formats={collections?.formats} /> :
+            <Rater
+              key={filteredCI.metadata.id + configToId(filterConfig)}
+              collection={filteredCI}
+              ratings={ratings}
+              language='en'
+              backend={backend}
+              formats={filteredCI.metadata.excluded_formats ?
+                collections.formats.filter(x => !filteredCI.metadata.excluded_formats!.find(y => y === x.title)) :
+                collections.formats} /> :
             <ui.CircularProgress />
           }
         </ui.Box>
