@@ -6,12 +6,13 @@ import * as icons from '@mui/icons-material';
 import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING, hasAtLeastOneLocalRating, makeFormatStorageKey, Format } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
-import { resolveImage } from '../util/scryfall_util';
+import { resolveImage } from '../util/scryfallUtil';
 import { useDebounce } from 'use-debounce';
 
 import globals from "../globals";
 import { title } from 'process';
 import CollectionExportButton from './collectionExportButton';
+import { ProgramStore } from '../util/programStore';
 
 export type RaterProps = {
     collection: CollectionInfo,
@@ -172,7 +173,7 @@ export default function CollectionRater(props: RaterProps) {
                             ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
                         }}
                         handleDelete={(e) => {
-                            localStorage.setItem(makeFormatStorageKey(x), "false");
+                            ProgramStore.setItem(makeFormatStorageKey(x), "false");
                             const format = formats.find(y => y.title === x);
                             if (format) format.enabled = false;
                             setActiveFormats(activeFormats.filter(y => y !== x));
@@ -217,7 +218,7 @@ export default function CollectionRater(props: RaterProps) {
                 <ui.Stack direction="row" justifyContent="flex-start" width={{ xs: "80%", md: "40%" }} spacing={1}>
                     {formats.filter(x => activeFormats.find(y => y === x.title) === undefined).map(x =>
                         <ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
-                            localStorage.setItem(makeFormatStorageKey(x.title), "true");
+                            ProgramStore.setItem(makeFormatStorageKey(x.title), "true");
                             x.enabled = true;
                             setActiveFormats([x.title, ...activeFormats].sort());
 

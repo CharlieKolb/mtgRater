@@ -1,4 +1,5 @@
 import { ScryfallCard } from "@scryfall/api-types";
+import { ProgramStore } from "../util/programStore";
 
 export type Distribution = [number, number, number, number, number]
 
@@ -99,7 +100,7 @@ function makeLocalStorageKey(collectionId: string, formatId: string, { set_code,
 function updateRatingsFromLocalStorage(collectionId: string, ratings: Ratings) {
     for (const [k, cardRating] of Object.entries(ratings.ratings)) {
         for (let [key, rating] of Object.entries(cardRating.rating_by_format)) {
-            rating.localRating = stringToRating(localStorage.getItem(makeLocalStorageKey(collectionId, key, cardRating)));
+            rating.localRating = stringToRating(ProgramStore.getItem(makeLocalStorageKey(collectionId, key, cardRating)));
         }
     }
     return ratings;
@@ -107,10 +108,10 @@ function updateRatingsFromLocalStorage(collectionId: string, ratings: Ratings) {
 
 export function setLocalStorageRating(collectionId: string, formatId: string, setCode: string, cardCode: string, rating: LocalRating) {
     if (rating === null) {
-        localStorage.removeItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }));
+        ProgramStore.removeItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }));
     }
     else {
-        localStorage.setItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }), rating.toString());
+        ProgramStore.setItem(makeLocalStorageKey(collectionId, formatId, { set_code: setCode, card_code: cardCode }), rating.toString());
     }
 }
 
@@ -234,7 +235,7 @@ export default class Backend {
         }
 
         for (const x of collections.formats) {
-            const val = localStorage.getItem(makeFormatStorageKey(x.title));
+            const val = ProgramStore.getItem(makeFormatStorageKey(x.title));
             if (val !== null) {
                 x.enabled = val === "true";
             }

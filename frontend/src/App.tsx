@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import './App.css';
 import Rater from './rater/collectionRater';
-import { resolveImage } from './util/scryfall_util';
+import { resolveImage } from './util/scryfallUtil';
 
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
@@ -64,7 +64,6 @@ function App() {
   }, [collections, dropdownKey, setRaterLoading]);
 
   useEffect(() => {
-    console.log("updating");
     if (collectionInfo !== null) {
       setFilteredCI(filterCollectionInfo(collectionInfo, filterConfig));
     }
