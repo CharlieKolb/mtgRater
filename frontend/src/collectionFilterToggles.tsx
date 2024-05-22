@@ -71,24 +71,6 @@ export default function CollectionFilterToggles(props: CollectionFilterTogglesPr
     const [colors, setColors] = React.useState(['white', 'blue', 'black', 'red', 'green', 'colorless']);
 
     React.useEffect(() => {
-        console.log(JSON.stringify(rarities));
-        console.log(JSON.stringify(colors));
-        console.log(JSON.stringify({
-            colors: {
-                white: colors.find(x => x === "white") !== undefined,
-                blue: colors.find(x => x === "blue") !== undefined,
-                black: colors.find(x => x === "black") !== undefined,
-                red: colors.find(x => x === "red") !== undefined,
-                green: colors.find(x => x === "green") !== undefined,
-            },
-            rarities: {
-                common: rarities.find(x => x === "common") !== undefined,
-                uncommon: rarities.find(x => x === "uncommon") !== undefined,
-                rare: rarities.find(x => x === "rare") !== undefined,
-                mythic: rarities.find(x => x === "mythic") !== undefined,
-
-            }
-        }));
         props.handleFilterUpdate({
             colors: {
                 white: colors.find(x => x === "white") !== undefined,

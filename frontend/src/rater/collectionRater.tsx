@@ -62,6 +62,8 @@ export default function CollectionRater(props: RaterProps) {
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
     const [indexOverride, setIndexOverride] = useState<number | undefined>(undefined);
     const [debouncedIndexOverride] = useDebounce<number | undefined>(indexOverride, globals.navigatorHoverDebounce);
+    const overriddenRating = debouncedIndexOverride !== undefined && ratings.ratings[makeRatingsKey(collection.list[debouncedIndexOverride])];
+    const overriddenRatingByFormat = (f: string) => debouncedIndexOverride !== undefined && ratings.ratings[makeRatingsKey(collection.list[debouncedIndexOverride])].rating_by_format[f];
 
     const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(rating));
 
@@ -164,8 +166,8 @@ export default function CollectionRater(props: RaterProps) {
                     <RatingBar
                         key={x}
                         title={x}
-                        reveal={submitted}
-                        rating={(debouncedIndexOverride !== undefined && ratings.ratings[makeRatingsKey(collection.list[debouncedIndexOverride])].rating_by_format[x]) || rating?.rating_by_format[x] || EMPTY_RATING}
+                        reveal={overriddenRating ? hasAtLeastOneLocalRating(overriddenRating) : submitted}
+                        rating={overriddenRatingByFormat(x) || rating?.rating_by_format[x] || EMPTY_RATING}
                         onRatingChanged={(v) => {
                             ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
                         }}
