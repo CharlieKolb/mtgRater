@@ -98,7 +98,7 @@ function makeLocalStorageKey(collectionId: string, formatId: string, { set_code,
 }
 
 function updateRatingsFromLocalStorage(collectionId: string, ratings: Ratings) {
-    for (const [k, cardRating] of Object.entries(ratings.ratings)) {
+    for (const cardRating of Object.values(ratings.ratings)) {
         for (let [key, rating] of Object.entries(cardRating.rating_by_format)) {
             rating.localRating = stringToRating(ProgramStore.getItem(makeLocalStorageKey(collectionId, key, cardRating)));
         }

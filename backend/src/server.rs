@@ -6,14 +6,11 @@ use std::{
 use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
-    http::{Method, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use axum_client_ip::{
-    Forwarded, LeftmostForwarded, LeftmostXForwardedFor, RightmostForwarded,
-    RightmostXForwardedFor, SecureClientIp, SecureClientIpSource, XForwardedFor, XRealIp,
-};
+use axum_client_ip::SecureClientIp;
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use tracing::{info, instrument};

@@ -1,10 +1,9 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import * as ui from '@mui/material';
 import { ScryfallCard, ScryfallColorLike, ScryfallColors } from '@scryfall/api-types';
-import { resolveImageFromInfo } from '../../util/scryfallUtil';
-import { CardRating, hasAtLeastOneLocalRating, LocalRating } from '../../server/backend';
+import { CardRating, hasAtLeastOneLocalRating } from '../../server/backend';
 
 
 export type CollectionNavigatorButtonProps = {

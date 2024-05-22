@@ -1,19 +1,15 @@
 use std::{
-    collections::HashMap,
-    env, fs,
+    env,
     net::SocketAddr,
     sync::{Arc, Mutex},
 };
 
-use axum::{
-    body::HttpBody, extract::Request, http::Uri, middleware::Next, response::Response,
-    routing::get, Router, ServiceExt,
-};
+use axum::{routing::get, Router};
 use axum_client_ip::SecureClientIpSource;
 use lru::LruCache;
 use server::AppState;
-use sqlx::postgres::{PgListener, PgPoolOptions};
-use tracing::{info, Instrument};
+use sqlx::postgres::PgPoolOptions;
+use tracing::info;
 use util::CollectionsJson;
 
 mod db;
@@ -60,14 +56,14 @@ async fn main() -> Result<(), anyhow::Error> {
         database_password, database_url
     );
 
-    println!("Connecting to DB at '{}'", &postgres_str);
+    info!("Connecting to DB at '{}'", &postgres_str);
     // Create a connection pool
     let _pool = PgPoolOptions::new()
         .min_connections(1)
         .max_connections(5)
-        .after_connect(|x, y| {
+        .after_connect(|_, _| {
             Box::pin(async move {
-                println!("Connected db");
+                info!("Connected db");
                 Ok(())
             })
         })

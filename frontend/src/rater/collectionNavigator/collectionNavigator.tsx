@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import * as ui from '@mui/material';
 
 import { CollectionInfo, Ratings } from '../../server/backend';
 
-import { ScryfallCard } from "@scryfall/api-types";
 import { CollectionNavigatorSegment } from './collectionNavigatorSegment';
 
 export type CollectionNavigatorProps = {

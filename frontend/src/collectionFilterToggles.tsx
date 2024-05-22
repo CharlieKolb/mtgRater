@@ -1,8 +1,5 @@
 import * as React from 'react';
-import * as icons from "@mui/icons-material"
 import * as ui from "@mui/material"
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { CollectionInfo } from './server/backend';
 
 export type CollectionFilterTogglesProps = {
@@ -88,7 +85,7 @@ export default function CollectionFilterToggles(props: CollectionFilterTogglesPr
 
             }
         })
-    }, [rarities, colors])
+    }, [props, rarities, colors])
 
     return (
         <ui.Stack

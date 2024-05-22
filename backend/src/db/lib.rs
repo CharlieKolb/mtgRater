@@ -1,6 +1,5 @@
 use serde::Serialize;
 use sqlx::{prelude::FromRow, Pool, Postgres};
-use tracing::debug;
 
 static GET_RATINGS_QUERY: &str = &include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),

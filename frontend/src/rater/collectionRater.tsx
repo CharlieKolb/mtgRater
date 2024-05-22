@@ -3,14 +3,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, RatingByFormat, CollectionInfo, makeRatingsKey, Rating, EMPTY_RATING, hasAtLeastOneLocalRating, makeFormatStorageKey, Format } from '../server/backend';
+import Backend, { CardRating, Ratings, CollectionInfo, makeRatingsKey, EMPTY_RATING, hasAtLeastOneLocalRating, makeFormatStorageKey, Format } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfallUtil';
 import { useDebounce } from 'use-debounce';
 
 import globals from "../globals";
-import { title } from 'process';
 import CollectionExportButton from './collectionExportButton';
 import { ProgramStore } from '../util/programStore';
 
@@ -84,9 +83,9 @@ export default function CollectionRater(props: RaterProps) {
         }
         // set submitted here rather than reactive on new index to avoid rendering issue in child component
         // should either remove clearing feature or have explicit localstorage "cleared" state for each collection/set/card combo regardless of specific value
-        setSubmitted(hasAtLeastOneLocalRating(ratings.ratings[makeRatingsKey(collection.list[newIndex])]));
+        setSubmitted(hasAtLeastOneLocalRating(props.ratings.ratings[makeRatingsKey(props.collection.list[newIndex])]));
         setIndex(newIndex);
-    }, [props, rating, submitted, setIndex]);
+    }, [props, rating, submitted]);
 
     function handleNextCard() {
         handleCardChanged((index + 1) % collection.list.length);

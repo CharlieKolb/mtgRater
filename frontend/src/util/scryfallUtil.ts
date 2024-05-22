@@ -1,5 +1,5 @@
 import { ScryfallCard } from "@scryfall/api-types";
-import { Card, CardRating, Ratings } from "../server/backend";
+import { Card } from "../server/backend";
 
 
 const DEFAULT_IMAGE = "https://cards.scryfall.io/normal/front/5/a/5aa90ab6-2686-4462-8725-5d4370c05437.jpg?1663738897"

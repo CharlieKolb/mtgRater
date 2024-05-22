@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
-
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import { CollectionInfo, Format, makeFormatStorageKey, makeRatingsKey, Ratings } from '../server/backend';
+import { CollectionInfo, Format, makeRatingsKey, Ratings } from '../server/backend';
 
 
 export type CollectionExportButtonProps = {
