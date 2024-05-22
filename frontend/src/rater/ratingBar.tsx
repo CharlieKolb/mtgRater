@@ -82,7 +82,7 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
     const makeElement = localValue !== null ? makeDistributionBox : makeRatingBox;
 
     return (
-        <ui.Stack direction={{ xs: "column", md: "row" }} display="flex" alignSelf="stretch" alignItems="center" justifyContent="space-evenly" minHeight={minHeight}>
+        <ui.Stack direction={{ xs: "column", md: "row" }} display="flex" alignSelf="stretch" alignItems="center" justifyContent="center" minHeight={minHeight}>
             <ui.Stack direction="row">
                 {!isDesktop && <ui.Box width="36px" />
                 }
@@ -97,6 +97,7 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
             </ui.Stack>
             <ui.Grid container
                 display="grid"
+                margin="0px 5% 0px 5%"
                 alignItems="center"
                 alignContent="center"
                 justifyContent="center"
