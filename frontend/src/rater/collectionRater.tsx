@@ -95,8 +95,8 @@ export default function CollectionRater(props: RaterProps) {
 
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
-            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 1, md: 2 }} flexGrow={3}>
-                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" width="100%" maxWidth="100%" minWidth="70%" spacing={{ xs: 0, md: 2 }}>
+            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 0, md: 2 }} minWidth="80%" flexGrow={3}>
+                <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" maxWidth="100%" minWidth="70%" spacing={{ xs: 0, md: 2 }}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
@@ -151,7 +151,7 @@ export default function CollectionRater(props: RaterProps) {
                         }} />
                 )
                 }
-                <ui.Stack direction="row" alignItems="center" justifyItems="stretch" alignSelf={isDesktop ? "center" : "stretch"}>
+                <ui.Stack direction="row" alignItems="center" justifyContent="center" alignSelf={isDesktop ? "center" : "stretch"}>
                     {!isDesktop &&
                         <React.Fragment>
                             <ui.Button fullWidth variant="outlined" onClick={(e) => setShowMobileNavigator(!showMobileNavigator)}>Browse</ui.Button>
@@ -160,7 +160,7 @@ export default function CollectionRater(props: RaterProps) {
                                 open={showMobileNavigator}
                                 onClose={() => setShowMobileNavigator(!showMobileNavigator)}
                             >
-                                <ui.Stack direction="column" width="250px">
+                                <ui.Stack direction="column" width="300px">
                                     <CollectionExportButton formats={formats} collectionInfo={collection} ratings={ratings} />
                                     <CollectionNavigator
                                         ratings={ratings}
@@ -178,16 +178,16 @@ export default function CollectionRater(props: RaterProps) {
                         Next
                     </ui.Button>
                 </ui.Stack>
-                <ui.Stack direction="row" justifyContent="flex-start" width={{ xs: "80%", md: "40%" }} spacing={1}>
+                <ui.Grid container direction="row" justifyContent="center" width={{ xs: "100%", md: "70%" }} spacing={1} >
                     {formats.filter(x => activeFormats.find(y => y === x.title) === undefined).sort((a, b) => a.title.localeCompare(b.title)).map(x =>
-                        <ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
+                        <ui.Grid item gridRow="1"><ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
                             ProgramStore.setItem(makeFormatStorageKey(x.title), "true");
                             x.enabled = true;
                             setActiveFormats([x.title, ...activeFormats].sort());
 
-                        }} />
+                        }} /></ui.Grid>
                     )}
-                </ui.Stack>
+                </ui.Grid>
             </ui.Stack >
             {isDesktop && <ui.Divider orientation="vertical" flexItem />}
             {isDesktop && <CollectionNavigator ratings={ratings} collection={collection} targetIndex={index} onItemClick={handleNavigationClick} onIndexOverride={setIndexOverride} />}

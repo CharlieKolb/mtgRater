@@ -47,15 +47,16 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
     const theme = ui.useTheme();
     const isDesktop = ui.useMediaQuery(theme.breakpoints.up('md'));
 
-    const targetWidth = 400;
-    const minHeight = isDesktop ? 70 : 50;
-    const gridHeight = minHeight * 0.9;
+    const targetWidth = isDesktop ? 450 : "100%";
+    const minHeight = isDesktop ? 70 : 60;
+    const gridHeight = minHeight;
 
 
     const makeDistributionBox = (index: number) => {
         const totalVotes = distribution.reduce((v, n) => v + n); // Start with 1 to avoid div by 0
         const boxValue = distribution[index] + ((rating.localRating === index + 1) ? 1 : 0);
-        const diameter = Math.max(2.5, (boxValue / Math.max(1, totalVotes + (rating.localRating === null ? 0 : 1))) * gridHeight);
+        // cap % at 0.75 to avoid size issues with few votes
+        const diameter = Math.max(2.5, (Math.min(0.75, boxValue / Math.max(1, totalVotes + (rating.localRating === null ? 0 : 1)))) * gridHeight);
         const shapeStyles = { width: diameter, height: diameter };
         const shapeCircleStyles = { borderRadius: '50%' };
 
@@ -97,20 +98,19 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
             <ui.Grid container
                 display="grid"
                 alignItems="center"
+                alignContent="center"
+                justifyContent="center"
                 justifyItems="center"
+                minHeight={minHeight}
                 gridAutoColumns="1fr"
-                minHeight={gridHeight}
-                maxHeight={gridHeight}
-                maxWidth={targetWidth}
-                spacing={0}>
-                <ui.Grid item gridRow="1"><icons.LooksOne color="primary" /></ui.Grid>
-                {/* <ui.Grid item gridRow="1"><ui.Chip label="1" /></ui.Grid> */}
+                maxWidth={targetWidth}>
+                <ui.Grid item display="flex" gridRow="1"><icons.LooksOne color="primary" /></ui.Grid>
                 {makeElement(0)}
                 {makeElement(1)}
                 {makeElement(2)}
                 {makeElement(3)}
                 {makeElement(4)}
-                <ui.Grid item gridRow="1"><icons.Looks5 color="primary" /></ui.Grid>
+                <ui.Grid item display="flex" gridRow="1"><icons.Looks5 color="primary" /></ui.Grid>
 
             </ui.Grid >
             {/* Spacing to keep previous component centered */}

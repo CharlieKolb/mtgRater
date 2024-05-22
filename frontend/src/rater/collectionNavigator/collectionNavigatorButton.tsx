@@ -68,6 +68,7 @@ export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonPro
             lineHeight: "1.7em",
             height: "1.7em",
             whiteSpace: "nowrap",
+            minWidth: "50px",
             bgcolor: hasAtLeastOneLocalRating(rating) ? '#21252d' : 'theme.palette.background',
         }}>
         {cardInfo && colorCode && <ui.Box

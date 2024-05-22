@@ -76,10 +76,6 @@ function App() {
         direction={{ xs: "column", md: "row" }}
         marginLeft={{ xs: 0, md: 2 }}
         gap={{ xs: 0, md: 2 }}
-        maxWidth="100%"
-        width={{ xs: "auto", md: "auto" }}
-        height="100vh"
-        alignItems="center"
       >
         {collections !== null &&
           <ui.Stack marginTop={{ xs: 0, md: 5 }} marginBottom={{ xs: 0, md: 5 }} direction="column" justifyContent="space-between" alignSelf="stretch">
@@ -101,20 +97,18 @@ function App() {
           </ui.Stack>
         }
         {isDesktop && <ui.Divider orientation="vertical" flexItem />}
-        <ui.Box flexGrow={1} display="flex" justifyContent="center" alignItems="flex-start">
-          {(!raterLoading && collections !== null && filteredCI !== null && ratings !== null && filteredCI.list.length > 0) ?
-            <Rater
-              key={filteredCI.metadata.id + configToId(filterConfig)}
-              collection={filteredCI}
-              ratings={ratings}
-              language='en'
-              backend={backend}
-              formats={filteredCI.metadata.excluded_formats ?
-                collections.formats.filter(x => !filteredCI.metadata.excluded_formats!.find(y => y === x.title)) :
-                collections.formats} /> :
-            <ui.CircularProgress />
-          }
-        </ui.Box>
+        {(!raterLoading && collections !== null && filteredCI !== null && ratings !== null && filteredCI.list.length > 0) ?
+          <Rater
+            key={filteredCI.metadata.id + configToId(filterConfig)}
+            collection={filteredCI}
+            ratings={ratings}
+            language='en'
+            backend={backend}
+            formats={filteredCI.metadata.excluded_formats ?
+              collections.formats.filter(x => !filteredCI.metadata.excluded_formats!.find(y => y === x.title)) :
+              collections.formats} /> :
+          <ui.CircularProgress />
+        }
         {!isDesktop && <React.Fragment>
           <ui.IconButton color="primary" onClick={(e) => setShowMobileFilter(!showMobileFilter)}><icons.FilterAlt fontSize="large" /></ui.IconButton>
           <ui.Drawer
@@ -122,9 +116,7 @@ function App() {
             open={showMobileFilter}
             onClose={() => setShowMobileFilter(!showMobileFilter)}
           >
-            {/* <ui.Stack direction="column" width="250px"> */}
             <CollectionFilterToggles handleFilterUpdate={setFilterConfig} />
-            {/* </ui.Stack> */}
           </ui.Drawer>
         </React.Fragment>
         }
