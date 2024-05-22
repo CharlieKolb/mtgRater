@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, CollectionInfo, makeRatingsKey, EMPTY_RATING, hasAtLeastOneLocalRating, makeFormatStorageKey, Format } from '../server/backend';
+import Backend, { CardRating, Ratings, CollectionInfo, makeRatingsKey, EMPTY_RATING, makeFormatStorageKey, Format, LocalRating } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfallUtil';
@@ -22,35 +22,6 @@ export type RaterProps = {
 }
 
 
-
-
-function reportRating({ backend, collection }: RaterProps, card: CardRating) {
-    for (const [key, rating] of Object.entries(card.rating_by_format)) {
-        if (rating.localRating === null) {
-            continue;
-        }
-
-        // We increment locally mostly to avoid showing no votes for the number the user chose just now
-        switch (rating.localRating) {
-            case 1: rating.rated_1 += 1; break;
-            case 2: rating.rated_2 += 1; break;
-            case 3: rating.rated_3 += 1; break;
-            case 4: rating.rated_4 += 1; break;
-            case 5: rating.rated_5 += 1; break;
-        }
-        backend.postRating({
-            cardCode: card.card_code,
-            setCode: card.set_code,
-            formatId: key,
-            collectionId: collection.metadata.id,
-            rating: rating.localRating,
-        });
-
-    }
-}
-
-
-
 export default function CollectionRater(props: RaterProps) {
 
     const { collection, ratings, formats } = props;
@@ -62,10 +33,7 @@ export default function CollectionRater(props: RaterProps) {
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
     const [indexOverride, setIndexOverride] = useState<number | undefined>(undefined);
     const [debouncedIndexOverride] = useDebounce<number | undefined>(indexOverride, globals.navigatorHoverDebounce);
-    const overriddenRating = debouncedIndexOverride !== undefined && ratings.ratings[makeRatingsKey(collection.list[debouncedIndexOverride])];
     const overriddenRatingByFormat = (f: string) => debouncedIndexOverride !== undefined && ratings.ratings[makeRatingsKey(collection.list[debouncedIndexOverride])].rating_by_format[f];
-
-    const [submitted, setSubmitted] = useState(hasAtLeastOneLocalRating(rating));
 
     const [showMobileNavigator, setShowMobileNavigator] = useState(false);
 
@@ -77,22 +45,29 @@ export default function CollectionRater(props: RaterProps) {
 
 
     const handleCardChanged = useCallback((newIndex: number) => {
-        if (!submitted && rating) {
-            // If the card has no local rating yet it means nothing submitted the chosen value to the backend yet
-            reportRating(props, rating);
-        }
-        // set submitted here rather than reactive on new index to avoid rendering issue in child component
-        // should either remove clearing feature or have explicit localstorage "cleared" state for each collection/set/card combo regardless of specific value
-        setSubmitted(hasAtLeastOneLocalRating(props.ratings.ratings[makeRatingsKey(props.collection.list[newIndex])]));
         setIndex(newIndex);
-    }, [props, rating, submitted]);
+    }, []);
 
     function handleNextCard() {
-        handleCardChanged((index + 1) % collection.list.length);
+        setIndex((index + 1) % collection.list.length);
     }
 
     function handlePreviousCard() {
-        handleCardChanged((index - 1 + collection.list.length) % collection.list.length);
+        setIndex((index - 1 + collection.list.length) % collection.list.length);
+    }
+
+    function reportRating(formatId: string, localRating: LocalRating) {
+        if (localRating === null) {
+            return;
+        }
+
+        props.backend.postRating({
+            cardCode: card.cardCode,
+            setCode: card.setCode,
+            formatId,
+            collectionId: collection.metadata.id,
+            rating: localRating,
+        });
     }
 
 
@@ -120,7 +95,7 @@ export default function CollectionRater(props: RaterProps) {
 
     return (
         <ui.Stack direction="row" alignItems="center" justifyContent="center" width="100%" maxWidth="100%">
-            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 1, md: 1 }} flexGrow={3}>
+            <ui.Stack direction="column" alignItems="center" alignContent="center" spacing={{ xs: 1, md: 2 }} flexGrow={3}>
                 <ui.Stack direction={{ xs: "column", md: "row" }} alignItems="center" justifyContent="center" width="100%" maxWidth="100%" minWidth="70%" spacing={{ xs: 0, md: 2 }}>
                     <ui.IconButton color="primary" onClick={handlePreviousCard} sx={{ display: { xs: "none", md: "block" } }}>
                         <icons.ArrowBackIosNew />
@@ -166,11 +141,8 @@ export default function CollectionRater(props: RaterProps) {
                     <RatingBar
                         key={x}
                         title={x}
-                        reveal={overriddenRating ? hasAtLeastOneLocalRating(overriddenRating) : submitted}
                         rating={overriddenRatingByFormat(x) || rating?.rating_by_format[x] || EMPTY_RATING}
-                        onRatingChanged={(v) => {
-                            ratings.ratings[makeRatingsKey(card)].rating_by_format[x].localRating = v;
-                        }}
+                        reportRating={(localRating, formatId) => reportRating(formatId, localRating)}
                         handleDelete={(e) => {
                             ProgramStore.setItem(makeFormatStorageKey(x), "false");
                             const format = formats.find(y => y.title === x);
@@ -202,16 +174,8 @@ export default function CollectionRater(props: RaterProps) {
                                 </ui.Stack>
                             </ui.Drawer>
                         </React.Fragment>}
-                    <ui.Button fullWidth={!isDesktop} variant="outlined" onClick={() => {
-                        if (!submitted) {
-                            if (rating) reportRating(props, rating);
-                            setIndex(index); // hack to refresh local value in ratingBar
-                            setSubmitted(true);
-                        } else {
-                            handleNextCard();
-                        }
-                    }}>
-                        {submitted ? "Next" : "Reveal"}
+                    <ui.Button fullWidth={!isDesktop} variant="outlined" onClick={handleNextCard}>
+                        Next
                     </ui.Button>
                 </ui.Stack>
                 <ui.Stack direction="row" justifyContent="flex-start" width={{ xs: "80%", md: "40%" }} spacing={1}>
