@@ -1,11 +1,12 @@
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import { CardRatingValue, Distribution, LocalRating, Rating } from "../server/backend";
+import { Card, CardRatingValue, Distribution, LocalRating, Rating } from "../server/backend";
 
 export type RatingBarProps = {
     title: string;
     rating: Rating;
+    card: Card;
     reportRating: (localRating: LocalRating, formatId: string) => void;
     handleDelete: ((event: any) => void);
 }
@@ -16,9 +17,15 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
     ];
 }
 
+function shouldDisabled(formatId: string, card: Card) {
+    // in unreleased sets legality for pauper will still be false
+    if (formatId === "pauper" && card.scryfallCard.rarity !== "common") return true;
+
+    return false;
+}
 
 
-export default function RatingBar({ title, rating, reportRating, handleDelete }: RatingBarProps) {
+export default function RatingBar({ title, rating, card, reportRating, handleDelete }: RatingBarProps) {
     const distribution = toDistribution(rating);
 
     function handleRatingChange(value: string | number) {
@@ -66,7 +73,7 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
     }
 
     const makeRatingBox = (index: number) => <ui.Grid key={`ratingBox_${index}`} item gridRow="1">
-        <ui.Radio key={index} value={index} onChange={() => handleRatingChange(index + 1)} />
+        <ui.Radio disabled={shouldDisabled(title, card)} key={index} value={index} onChange={() => handleRatingChange(index + 1)} />
     </ui.Grid>;
 
 
@@ -96,13 +103,13 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
                 minHeight={minHeight}
                 gridAutoColumns="1fr"
                 maxWidth={targetWidth}>
-                <ui.Grid item display="flex" gridRow="1"><icons.LooksOne color="primary" /></ui.Grid>
+                <ui.Grid item display="flex" gridRow="1"><icons.LooksOne color={shouldDisabled(title, card) ? "disabled" : "primary"} /></ui.Grid>
                 {makeElement(0)}
                 {makeElement(1)}
                 {makeElement(2)}
                 {makeElement(3)}
                 {makeElement(4)}
-                <ui.Grid item display="flex" gridRow="1"><icons.Looks5 color="primary" /></ui.Grid>
+                <ui.Grid item display="flex" gridRow="1"><icons.Looks5 color={shouldDisabled(title, card) ? "disabled" : "primary"} /></ui.Grid>
 
             </ui.Grid >
             {/* Spacing to keep previous component centered */}

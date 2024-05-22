@@ -148,6 +148,7 @@ export default function CollectionRater(props: RaterProps) {
                         key={x}
                         title={x}
                         rating={overriddenRatingByFormat(x) || rating.rating_by_format[x] || EMPTY_RATING}
+                        card={card}
                         reportRating={(localRating, formatId) => {
                             rating.rating_by_format[x].localRating = localRating;
                             setRating(Object.assign({}, rating));
