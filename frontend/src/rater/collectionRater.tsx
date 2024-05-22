@@ -52,6 +52,7 @@ function reportRating({ backend, collection }: RaterProps, card: CardRating) {
 
 
 export default function CollectionRater(props: RaterProps) {
+
     const { collection, ratings, formats } = props;
     const [index, setIndex] = useState(0);
     const card = collection.list[index];
@@ -68,11 +69,10 @@ export default function CollectionRater(props: RaterProps) {
 
     const [activeFormats, setActiveFormats] = useState(formats.filter(x => x.enabled).map(x => x.title).sort());
 
-
-
     useEffect(() => {
         setIndex(0);
-    }, [ratings])
+    }, [ratings, collection]);
+
 
     const handleCardChanged = useCallback((newIndex: number) => {
         if (!submitted && rating) {

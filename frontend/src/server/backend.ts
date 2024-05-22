@@ -84,7 +84,7 @@ function stringToRating(s: string | null): LocalRating {
     }
 }
 
-export function makeRatingsKey(card: CardNew) {
+export function makeRatingsKey(card: Card) {
     return card.setCode + card.cardCode;
 }
 
@@ -114,7 +114,7 @@ export function setLocalStorageRating(collectionId: string, formatId: string, se
     }
 }
 
-export type CardNew = {
+export type Card = {
     setCode: string,
     cardCode: string,
     scryfallCard: ScryfallCard.Any,
@@ -124,17 +124,17 @@ export type CardNew = {
 export type CollectionInfo = {
     metadata: CollectionMetadata,
     dict: Record<string, ScryfallCard.Any>,
-    list: CardNew[],
+    list: Card[],
 }
 
-function reorder_sets(cards: CardNew[], setOrder: string[]) {
+function reorder_sets(cards: Card[], setOrder: string[]) {
     // TODO: Apply custom set order here. Happens to work out for MH3 tho so kinda low priority
 
     return cards;
 }
 
 async function fetchCollectionInfo(collectionMetadata: CollectionMetadata): Promise<CollectionInfo> {
-    let query = "https://api.scryfall.com/cards/search?q=-is%3Adigital+" + collectionMetadata.scryfall_query + "&unique=cards&order=set";
+    let query = "https://api.scryfall.com/cards/search?q=-is%3Adigital+" + collectionMetadata.scryfall_query + "&unique=carxds&order=set";
     let dict: Record<string, ScryfallCard.Any> = {};
     let list = [];
     do {
@@ -204,7 +204,7 @@ export default class Backend {
     }
 
     public async getCollectionInfo(collectionMetadata: CollectionMetadata): Promise<CollectionInfo> {
-        return await fetchCollectionInfo(collectionMetadata);
+        return fetchCollectionInfo(collectionMetadata);
     }
 
     public async getRatings(collectionId: string, collectionInfo: CollectionInfo, formats: Format[]): Promise<Ratings> {

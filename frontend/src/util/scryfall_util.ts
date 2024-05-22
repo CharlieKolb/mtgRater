@@ -1,5 +1,5 @@
 import { ScryfallCard } from "@scryfall/api-types";
-import { CardNew, CardRating, Ratings } from "../server/backend";
+import { Card, CardRating, Ratings } from "../server/backend";
 
 
 const DEFAULT_IMAGE = "https://cards.scryfall.io/normal/front/5/a/5aa90ab6-2686-4462-8725-5d4370c05437.jpg?1663738897"
@@ -17,6 +17,6 @@ export function resolveImageFromInfo(scryfallCard: ScryfallCard.Any): string[] {
     return [""];
 }
 
-export function resolveImage(card: CardNew): string[] {
+export function resolveImage(card: Card): string[] {
     return resolveImageFromInfo(card.scryfallCard);
 }
