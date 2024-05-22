@@ -81,7 +81,7 @@ function App() {
         height="100vh"
         alignItems="center"
       >
-        {collections !== null &&
+        {collections !== null && isDesktop &&
           <ui.Stack marginTop={{ xs: 0, md: 5 }} marginBottom={{ xs: 0, md: 5 }} direction="column" justifyContent="space-between" alignSelf="stretch">
             <ui.FormControl sx={{ display: "flex" }} >
               <ui.Select
