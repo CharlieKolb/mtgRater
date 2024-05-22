@@ -27,7 +27,7 @@ export default function CollectionRater(props: RaterProps) {
     const { collection, ratings, formats } = props;
     const [index, setIndex] = useState(0);
     const card = collection.list[index];
-    const rating = ratings.ratings[makeRatingsKey(card)] as CardRating | undefined;
+    const [rating, setRating] = useState(ratings.ratings[makeRatingsKey(card)] as CardRating);
 
     const [imageSource, setImageSource] = useState("")
     const [imageBacksideSource, setImageBacksideSource] = useState<string | undefined>(undefined)
@@ -83,6 +83,8 @@ export default function CollectionRater(props: RaterProps) {
         const currentImgs = resolveImage(card);
         setImageSource(currentImgs[0]);
         setImageBacksideSource(currentImgs[1]); // usually undefined
+
+        setRating(ratings.ratings[makeRatingsKey(collection.list[index])]);
     }, [card, collection, ratings, index])
 
     const handleNavigationClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -141,8 +143,12 @@ export default function CollectionRater(props: RaterProps) {
                     <RatingBar
                         key={x}
                         title={x}
-                        rating={overriddenRatingByFormat(x) || rating?.rating_by_format[x] || EMPTY_RATING}
-                        reportRating={(localRating, formatId) => reportRating(formatId, localRating)}
+                        rating={overriddenRatingByFormat(x) || rating.rating_by_format[x] || EMPTY_RATING}
+                        reportRating={(localRating, formatId) => {
+                            rating.rating_by_format[x].localRating = localRating;
+                            setRating(Object.assign({}, rating));
+                            reportRating(formatId, localRating);
+                        }}
                         handleDelete={(e) => {
                             ProgramStore.setItem(makeFormatStorageKey(x), "false");
                             const format = formats.find(y => y.title === x);
@@ -154,7 +160,7 @@ export default function CollectionRater(props: RaterProps) {
                 <ui.Stack direction="row" alignItems="center" justifyContent="center" alignSelf={isDesktop ? "center" : "stretch"}>
                     {!isDesktop &&
                         <React.Fragment>
-                            <ui.Button fullWidth variant="outlined" onClick={(e) => setShowMobileNavigator(!showMobileNavigator)}>Browse</ui.Button>
+                            <ui.Button fullWidth key="browse" variant="outlined" onClick={(e) => setShowMobileNavigator(!showMobileNavigator)}>Browse</ui.Button>
                             <ui.Drawer
                                 anchor="right"
                                 open={showMobileNavigator}
@@ -174,13 +180,13 @@ export default function CollectionRater(props: RaterProps) {
                                 </ui.Stack>
                             </ui.Drawer>
                         </React.Fragment>}
-                    <ui.Button fullWidth={!isDesktop} variant="outlined" onClick={handleNextCard}>
+                    <ui.Button fullWidth={!isDesktop} key="next" variant="outlined" onClick={handleNextCard}>
                         Next
                     </ui.Button>
                 </ui.Stack>
                 <ui.Grid container direction="row" justifyContent="center" width={{ xs: "100%", md: "70%" }} spacing={1} >
                     {formats.filter(x => activeFormats.find(y => y === x.title) === undefined).sort((a, b) => a.title.localeCompare(b.title)).map(x =>
-                        <ui.Grid item gridRow="1"><ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
+                        <ui.Grid item gridRow="1" key={x.title}><ui.Chip key={x.title} variant="outlined" label={x.title} sx={{ textTransform: 'capitalize' }} icon={<icons.Add fontSize='small' />} onClick={() => {
                             ProgramStore.setItem(makeFormatStorageKey(x.title), "true");
                             x.enabled = true;
                             setActiveFormats([x.title, ...activeFormats].sort());

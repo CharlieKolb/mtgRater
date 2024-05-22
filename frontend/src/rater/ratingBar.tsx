@@ -21,7 +21,6 @@ function toDistribution({ rated_1, rated_2, rated_3, rated_4, rated_5 }: Rating)
 export default function RatingBar({ title, rating, reportRating, handleDelete }: RatingBarProps) {
     const distribution = toDistribution(rating);
 
-
     function handleRatingChange(value: string | number) {
         let res: CardRatingValue = 1;
         // We increment locally mostly to avoid showing no votes for the number the user chose just now
@@ -33,9 +32,7 @@ export default function RatingBar({ title, rating, reportRating, handleDelete }:
             case "5": case 5: res = 5; rating.rated_5 += 1; break;
             default: console.log(`Received unexpected rating ${value}`); return;
         }
-        rating.localRating = res;
-        // setLocalValue(res);
-        reportRating(rating.localRating, title);
+        reportRating(res, title);
     }
 
     const theme = ui.useTheme();

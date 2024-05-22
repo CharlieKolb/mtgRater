@@ -54,7 +54,6 @@ function App() {
       (new Image()).src = resolveImage(new_collection_info.list[0])[0];
       const ratings = await backend.getRatings(new_collection_info.metadata.id, new_collection_info, collections.formats);
       setRatings(ratings);
-      setRaterLoading(false);
       setCollectionInfo(new_collection_info);
     })();
   }, [collections, dropdownKey, setRaterLoading]);
@@ -62,6 +61,7 @@ function App() {
   useEffect(() => {
     if (collectionInfo !== null) {
       setFilteredCI(filterCollectionInfo(collectionInfo, filterConfig));
+      setRaterLoading(false);
     }
   }, [collectionInfo, filterConfig])
 
