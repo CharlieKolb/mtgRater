@@ -63,12 +63,12 @@ export function filterCollectionInfo(collectionInfo: CollectionInfo, filterConfi
 }
 
 
-export default function CollectionFilterToggles(props: CollectionFilterTogglesProps) {
+export default function CollectionFilterToggles({ handleFilterUpdate }: CollectionFilterTogglesProps) {
     const [rarities, setRarities] = React.useState(['common', 'uncommon', 'rare', 'mythic']);
     const [colors, setColors] = React.useState(['white', 'blue', 'black', 'red', 'green', 'colorless']);
 
     React.useEffect(() => {
-        props.handleFilterUpdate({
+        handleFilterUpdate({
             colors: {
                 white: colors.find(x => x === "white") !== undefined,
                 blue: colors.find(x => x === "blue") !== undefined,
@@ -85,7 +85,7 @@ export default function CollectionFilterToggles(props: CollectionFilterTogglesPr
 
             }
         })
-    }, [props, rarities, colors])
+    }, [handleFilterUpdate, rarities, colors])
 
     return (
         <ui.Stack
