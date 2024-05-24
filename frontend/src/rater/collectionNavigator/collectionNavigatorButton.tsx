@@ -17,6 +17,18 @@ export type CollectionNavigatorButtonProps = {
 
 }
 
+function letterToColor(letter: string) {
+    switch (letter) {
+        case "W": return "#fefff8";
+        case "U": return "#3277a7";
+        case "B": return "#393736";
+        case "R": return "#da3946";
+        case "G": return "#38614c";
+        case "C": return "#94908e";
+    }
+    return "#000000";
+}
+
 function getColorIdentityCode(cardInfo: ScryfallCard.Any | undefined): string | null {
     if (cardInfo === undefined) return null;
 
@@ -32,31 +44,25 @@ function getColorIdentityCode(cardInfo: ScryfallCard.Any | undefined): string | 
         // mostly theoretical fallback
         colors = cardInfo.color_identity;
     }
+    colors.sort();
     // Workaround to support non-lands with generic mana cost, e.g. Sol Ring
     if (colors.length === 0 && "type_line" in cardInfo && !cardInfo.type_line.match("Land")) {
         colors = ["C"];
     }
-
-    if (colors.length === 0) return null;
-    if (colors.length > 1) return "#c0ac39";
-
-    switch (colors[0]) {
-        case "W": return "#fefff8";
-        case "U": return "#3277a7";
-        case "B": return "#393736";
-        case "R": return "#da3946";
-        case "G": return "#38614c";
-        case "C": return "#94908e";
+    switch (colors.length) {
+        case 0: return null;
+        case 1: return letterToColor(colors[0]);
+        case 2: return `linear-gradient(135deg, ${letterToColor(colors[0])} 50%, ${letterToColor(colors[1])} 50%)`
+        case 3: return `conic-gradient(from 180deg, ${letterToColor(colors[0])} 33.3%, ${letterToColor(colors[1])} 33.3%, ${letterToColor(colors[1])} 66.6%, ${letterToColor(colors[2])} 66.6%)`;
+        case 4: return `conic-gradient(from 180deg, ${letterToColor(colors[0])} 25%, ${letterToColor(colors[1])} 25%, ${letterToColor(colors[1])} 50%, ${letterToColor(colors[2])} 50%, ${letterToColor(colors[2])} 75%, ${letterToColor(colors[3])} 75%)`;
+        default: return "#c0ac39";
     }
-
-
-    return null
 }
+
 
 export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonProps>(({ rating, autoFocus, selected, index, cardInfo, onItemClick, onIndexOverride }: CollectionNavigatorButtonProps) => {
     const colorCode = getColorIdentityCode(cardInfo);
     const title = cardInfo?.name || "";
-
     return (<ui.ListItemButton
         data-valueindex={index}
         autoFocus={autoFocus}
@@ -78,13 +84,13 @@ export const CollectionNavigatorButton = React.memo<CollectionNavigatorButtonPro
             width="15px"
             height="15px"
             margin="2px 7px 0 0"
-            border="1px solid #333"
+            // border="1px solid #333" // Disabled as it makes two-color buggy
             boxShadow="0px 0px 0px 2px rgba(0, 0, 0, 0.2)"
             overflow="hidden"
             color="transparent"
-            bgcolor={colorCode}
             sx={{
                 float: "left",
+                background: colorCode,
             }}
         />}
         <ui.ListItemText primary={title} />
