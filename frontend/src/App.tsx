@@ -32,7 +32,8 @@ function App() {
 
   const [filterConfig, setFilterConfig] = useState<FilterConfig>({
     colors: { white: true, blue: true, black: true, red: true, green: true, colorless: true },
-    rarities: { common: true, uncommon: true, rare: true, mythic: true }
+    rarities: { common: true, uncommon: true, rare: true, mythic: true },
+    others: { reprint: true },
   })
 
   const [showMobileFilter, setShowMobileFilter] = useState(false);

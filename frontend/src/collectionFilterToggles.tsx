@@ -22,6 +22,9 @@ export type FilterConfig = {
         rare: boolean,
         mythic: boolean,
     }
+    others: {
+        reprint: boolean,
+    }
 };
 
 export function configToId(filterConfig: FilterConfig) {
@@ -37,6 +40,8 @@ export function configToId(filterConfig: FilterConfig) {
     output += (filterConfig.colors.red) ? "T" : "F";
     output += (filterConfig.colors.green) ? "T" : "F";
     output += (filterConfig.colors.colorless) ? "T" : "F";
+
+    output += (filterConfig.others.reprint) ? "T" : "F";
 
     return output;
 }
@@ -57,6 +62,9 @@ export function filterCollectionInfo(collectionInfo: CollectionInfo, filterConfi
         if (!filterConfig.colors.green && sfc.color_identity.includes("G")) continue;
         if (!filterConfig.colors.colorless && (sfc.color_identity.includes("C") || sfc.color_identity.length === 0)) continue;
 
+        if (!filterConfig.others.reprint && sfc.reprint) continue;
+
+
         newList.push(card)
     }
 
@@ -67,6 +75,7 @@ export function filterCollectionInfo(collectionInfo: CollectionInfo, filterConfi
 export default function CollectionFilterToggles({ handleFilterUpdate }: CollectionFilterTogglesProps) {
     const [rarities, setRarities] = React.useState(['common', 'uncommon', 'rare', 'mythic']);
     const [colors, setColors] = React.useState(['white', 'blue', 'black', 'red', 'green', 'colorless']);
+    const [others, setOthers] = React.useState(['reprint']);
 
     React.useEffect(() => {
         handleFilterUpdate({
@@ -83,17 +92,19 @@ export default function CollectionFilterToggles({ handleFilterUpdate }: Collecti
                 uncommon: rarities.find(x => x === "uncommon") !== undefined,
                 rare: rarities.find(x => x === "rare") !== undefined,
                 mythic: rarities.find(x => x === "mythic") !== undefined,
-
+            },
+            others: {
+                reprint: others.find(x => x === "reprint") !== undefined,
             }
         })
-    }, [handleFilterUpdate, rarities, colors])
+    }, [handleFilterUpdate, rarities, colors, others])
 
     return (
         <ui.Stack
             direction="column"
-            alignItems="center"
+            alignItems="stretch"
         >
-            <icons.FilterAltSharp fontSize="large" color="primary" />
+            <icons.FilterAltSharp fontSize="large" color="primary" sx={{ alignSelf: "center" }} />
             <ui.Divider flexItem orientation="vertical" sx={{ my: 1 }} />
             <ui.ToggleButtonGroup
                 orientation='vertical'
@@ -117,6 +128,14 @@ export default function CollectionFilterToggles({ handleFilterUpdate }: Collecti
                 <ui.ToggleButton value="red">Red</ui.ToggleButton>
                 <ui.ToggleButton value="green">Green</ui.ToggleButton>
                 <ui.ToggleButton value="colorless">Colorless</ui.ToggleButton>
+            </ui.ToggleButtonGroup >
+            <ui.Divider flexItem orientation="vertical" sx={{ my: 1 }} />
+            <ui.ToggleButtonGroup
+                orientation='vertical'
+                value={others}
+                onChange={(_, x) => setOthers(x)}
+            >
+                <ui.ToggleButton value="reprint">Reprint</ui.ToggleButton>
             </ui.ToggleButtonGroup >
         </ui.Stack >
     );
