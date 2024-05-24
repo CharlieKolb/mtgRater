@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import * as ui from '@mui/material';
 import * as icons from '@mui/icons-material';
 
-import Backend, { CardRating, Ratings, CollectionInfo, makeRatingsKey, EMPTY_RATING, makeFormatStorageKey, Format, LocalRating } from '../server/backend';
+import Backend, { CardRating, Ratings, CollectionInfo, makeRatingsKey, EMPTY_RATING, makeFormatStorageKey, Format, LocalRating, Card } from '../server/backend';
 import RatingBar from './ratingBar';
 import CollectionNavigator from './collectionNavigator/collectionNavigator';
 import { resolveImage } from '../util/scryfallUtil';
@@ -19,6 +19,10 @@ export type RaterProps = {
     language: string; // e.g. "en", "jp"
     backend: Backend;
     formats: Format[];
+}
+
+function makeCardLink(card: Card) {
+    return `https://scryfall.com/card/${card.setCode}/${card.cardCode}`
 }
 
 
@@ -103,11 +107,11 @@ export default function CollectionRater(props: RaterProps) {
                         <icons.ArrowBackIosNew />
                     </ui.IconButton>
                     <ui.Box sx={{ position: "relative", }}>
-                        <img
+                        <a href={makeCardLink(card)} target="_blank" rel="noopener noreferrer"><img
                             className="card"
                             alt="loading..."
                             src={(debouncedIndexOverride !== undefined && resolveImage(collection.list[debouncedIndexOverride])[0]) || imageSource}
-                            style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} />
+                            style={{ maxWidth: "100%", borderRadius: "4.75% / 3.5%" }} /></a>
                         {imageBacksideSource &&
                             <ui.IconButton
                                 color="inherit"
