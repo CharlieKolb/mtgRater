@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS public.ratings
 (
     collection_id character varying(16) COLLATE pg_catalog."default" NOT NULL,
-    set_code character varying(6) NOT NULL,
-    card_code character varying(6) NOT NULL,
+    set_code character varying(16) NOT NULL,
+    card_code character varying(16) NOT NULL,
     format_id character varying(16) NOT NULL,
     rated_1 integer NOT NULL default 0,
     rated_2 integer NOT NULL default 0,
