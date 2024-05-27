@@ -37,3 +37,8 @@ The frontend needs it to optimize first load without a server roundtrip.
 The backend needs it to set up tables and formats for request validation.
 
 There surely is a way of sharing this file with both in a sensible fashion, but I couldn't find one that satisfied the rust compiler without making deployment harder and gave up on it.
+
+## Screenshots
+
+![Desktop Screenshot](/screenshots/desktop.png?raw=true "Desktop Screenshot")
+![Mobile Screenshot](/screenshots/mobile.png?raw=true "Mobile Screenshot")
