@@ -2,11 +2,11 @@
 
 Fullstack application to rate new magic cards and see how others rated them.
 
-Not hosted anywhere due to awful german data policy laws.
+Not hosted anywhere currently due to awful german data privacy laws, making it really tough to host a small hobby website without exposing my own personal data or risking huge fines.
 
 ## Run locally
 
-To run this project locally, run `docker-compose up --build` from project root after installing Docker. Find the website running at `localhost:80`.
+To run this project locally, run `docker-compose up --build` from project root after installing Docker. Find the website running at `localhost` or `localhost:80`.
 
 The setup was only tested from WSL2 running Ubuntu, connected to Docker running on the host Windows 10 machine, but should work anywhere.
 
@@ -22,7 +22,7 @@ On your server, navigate to the target directory and run `docker-compose pull` f
 
 ### Stack
 
-The project is composed of a React frontend using Material UI, a Rust backend using Tokio and Axum, a locally running Postgres Database (with manual backup script for AWS-based deployments) and a nginx reverse-proxy posing as the public interface of the server.
+The project is composed of a `React` frontend using `Material UI`, a `Rust` backend using `Tokio` and `Axum`, a locally running `Postgres` Database (with manual backup script for AWS-based deployments) and a `nginx` reverse-proxy posing as the public interface of the server.
 
 Most of the used technologies were new to me and I advise against following my solutions blindly, as few are optimal.
 
@@ -30,7 +30,7 @@ Local development is fully dockerized, whereas the production deployment builds 
 
 ### Issues
 
-The largest flaw in the project is that collections.json is manually updated in both the frontend and the backend.
+The largest flaw in the project is that `collections.json` is manually updated in both the frontend and the backend.
 
 The frontend needs it to optimize first load without a server roundtrip.
 
