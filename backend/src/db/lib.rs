@@ -99,6 +99,8 @@ pub async fn get_ratings(
     collection_id: &String,
     set_order: &Vec<String>,
 ) -> Result<Vec<SchemaRatings>, anyhow::Error> {
+    // Note that this ordering is currently not depended upon by the frontend
+    // Mostly here for historical reasons if I run into the problem again
     let results = sqlx::query_as::<_, SchemaRatings>(
         GET_RATINGS_QUERY
             .replace(

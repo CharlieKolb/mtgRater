@@ -125,7 +125,6 @@ pub async fn init_db(pool: &PgPool, server_data: &ServerData) -> Result<(), Erro
 
     info!("{:?}", known_sets);
 
-    // @TODO(ckolb): We should have a parameter to do a non-filtered run e.g. every 24 hours to refresh missing scryfall data and changed collections
     // This is mostly here to not spam scryfall during development, the cost to rerunning the queries on our end is negligible
     let filtered_collections = server_data
         .collections

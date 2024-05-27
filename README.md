@@ -20,9 +20,20 @@ On your server, navigate to the target directory and run `docker-compose pull` f
 
 ## Development
 
+### Stack
+
 The project is composed of a React frontend using Material UI, a Rust backend using Tokio and Axum, a locally running Postgres Database (with manual backup script for AWS-based deployments) and a nginx reverse-proxy posing as the public interface of the server.
 
 Most of the used technologies were new to me and I advise against following my solutions blindly, as few are optimal.
 
 Local development is fully dockerized, whereas the production deployment builds the frontend locally and deploys the output manually, as building on the host machine required too much RAM on the AWS EC2 t3.nano instance.
 
+### Issues
+
+The largest flaw in the project is that collections.json is manually updated in both the frontend and the backend.
+
+The frontend needs it to optimize first load without a server roundtrip.
+
+The backend needs it to set up tables and formats for request validation.
+
+There surely is a way of sharing this file with both in a sensible fashion, but I couldn't find one that satisfied the rust compiler without making deployment harder and gave up on it.
