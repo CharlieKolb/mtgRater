@@ -1,6 +1,6 @@
 # MTG Rater
 
-Fullstack application to rate new magic cards and see how others rated them.
+Full Stack application to rate new magic cards and see how others rated them.
 
 Not hosted anywhere currently due to awful german data privacy laws, making it tough to host a small hobby website without exposing my own personal data or risking huge fines.
 
